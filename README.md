@@ -1,3 +1,6 @@
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/bfb977d0-59d7-4535-91af-736c4f2ff23e" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/0aa39a64-dbdb-49ec-b61b-77284f209100" />
+
 # Astro Starter Kit: Basics
 
 ```sh
