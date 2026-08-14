@@ -1,0 +1,1878 @@
+---
+export const prerender = false;
+
+import Layout from '../../components/Layout.astro';
+import { adminDb } from '../../lib/firebase-admin';
+import { generateSlug } from '../../lib/chordParser';
+
+interface Chord {
+  id: string;
+  title: string;
+  artist: string;
+  key?: string;
+  content: string;
+}
+
+const base = import.meta.env.BASE_URL || '';
+
+let chords: (Chord & { slug: string })[] = [];
+let errorMessage: string | null = null;
+
+try {
+  const snapshot = await adminDb
+    .collection('chords')
+    .orderBy('title', 'asc')
+    .get();
+
+  chords = snapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+    slug: generateSlug(doc.data().title),
+  })) as (Chord & { slug: string })[];
+} catch (error: any) {
+  console.error('Error loading chords:', error);
+
+  errorMessage =
+    error?.message ||
+    'Gagal memuat data chord. Pastikan service-account.json ada dan Firebase project aktif.';
+}
+---
+
+<Layout title="Admin — SENAR">
+  <main class="admin-page">
+
+    <!-- =========================================================
+         HEADER
+    ========================================================== -->
+
+    <header class="admin-header">
+      <div class="admin-header-left">
+        <div class="admin-eyebrow">
+          <span class="eyebrow-mark"></span>
+          <span>SENAR / ADMIN</span>
+        </div>
+
+        <div class="admin-heading-row">
+          <div>
+            <h1>Library</h1>
+
+            <p>
+              Kelola seluruh chord dan lirik
+              yang tersedia di SENAR.
+            </p>
+          </div>
+
+          <div class="library-stat">
+            <span>TRACKS</span>
+            <strong>
+              {String(chords.length).padStart(2, '0')}
+            </strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="admin-actions">
+        <a
+          href={`${base}/`}
+          class="secondary-action"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M19 12H5"></path>
+            <path d="m11 18-6-6 6-6"></path>
+          </svg>
+
+          <span>Website</span>
+        </a>
+
+        <a
+          href={`${base}/admin/create`}
+          class="primary-action"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 5v14"></path>
+            <path d="M5 12h14"></path>
+          </svg>
+
+          <span>Tambah Chord</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- =========================================================
+         TOOLBAR
+    ========================================================== -->
+
+    <section class="admin-toolbar">
+      <div class="toolbar-left">
+        <span class="toolbar-title">
+          CHORD LIBRARY
+        </span>
+
+        <span class="toolbar-divider"></span>
+
+        <span class="toolbar-count">
+          {chords.length}
+          {chords.length === 1 ? 'track' : 'tracks'}
+        </span>
+      </div>
+
+      <div class="toolbar-right">
+        <div class="admin-search">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="11" cy="11" r="6.5"></circle>
+            <path d="m16 16 5 5"></path>
+          </svg>
+
+          <input
+            type="search"
+            placeholder="Cari lagu atau artis..."
+            autocomplete="off"
+            spellcheck="false"
+            data-admin-search
+          />
+
+          <kbd>/</kbd>
+        </div>
+
+        <button
+          type="button"
+          id="logoutBtn"
+          class="logout-button"
+        >
+          Logout
+        </button>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         ERROR STATE
+    ========================================================== -->
+
+    {errorMessage && (
+      <section class="admin-error">
+        <div class="error-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 9v4"></path>
+            <path d="M12 17h.01"></path>
+            <path
+              d="M10.3 3.7 2.7 17a2 2 0 0 0 1.7 3h15.2a2 2 0 0 0 1.7-3L13.7 3.7a2 2 0 0 0-3.4 0Z"
+            ></path>
+          </svg>
+        </div>
+
+        <div class="error-content">
+          <span class="error-label">
+            SYSTEM ERROR
+          </span>
+
+          <h2>Gagal memuat library</h2>
+
+          <p>
+            {errorMessage}
+          </p>
+
+          <code>
+            service-account.json → Firebase Admin
+          </code>
+        </div>
+      </section>
+    )}
+
+    <!-- =========================================================
+         EMPTY STATE
+    ========================================================== -->
+
+    {!errorMessage && chords.length === 0 && (
+      <section class="admin-empty">
+        <div class="empty-index">
+          00
+        </div>
+
+        <div class="empty-content">
+          <span class="empty-label">
+            LIBRARY EMPTY
+          </span>
+
+          <h2>Belum ada chord</h2>
+
+          <p>
+            Tambahkan lagu pertama ke library SENAR
+            untuk mulai membangun koleksi.
+          </p>
+
+          <a
+            href={`${base}/admin/create`}
+            class="empty-action"
+          >
+            <span>Tambah chord pertama</span>
+
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 12h13"></path>
+              <path d="m13 6 6 6-6 6"></path>
+            </svg>
+          </a>
+        </div>
+      </section>
+    )}
+
+    <!-- =========================================================
+         LIBRARY
+    ========================================================== -->
+
+    {!errorMessage && chords.length > 0 && (
+      <section class="admin-library">
+
+        <div class="library-table-head">
+          <span>NO.</span>
+          <span>SONG</span>
+          <span>KEY</span>
+          <span>ACTIONS</span>
+        </div>
+
+        <div
+          class="library-list"
+          data-library
+        >
+          {chords.map((chord, index) => (
+            <article
+              class="admin-song"
+              data-song
+              data-title={chord.title.toLowerCase()}
+              data-artist={chord.artist.toLowerCase()}
+              style={`--song-index:${index}`}
+            >
+              <div class="song-number">
+                {String(index + 1).padStart(2, '0')}
+              </div>
+
+              <div class="song-information">
+                <h2>{chord.title}</h2>
+
+                <p>{chord.artist}</p>
+              </div>
+
+              <div class="song-key">
+                {chord.key ? (
+                  <>
+                    <span>KEY</span>
+                    <strong>{chord.key}</strong>
+                  </>
+                ) : (
+                  <span class="no-key">—</span>
+                )}
+              </div>
+
+              <div class="song-actions">
+                <a
+                  href={`${base}/admin/${chord.slug}`}
+                  class="edit-button"
+                  aria-label={`Edit ${chord.title}`}
+                >
+                  <span>Edit</span>
+
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 20h9"></path>
+
+                    <path
+                      d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z"
+                    ></path>
+                  </svg>
+                </a>
+
+                <button
+                  type="button"
+                  class="delete-button"
+                  data-id={chord.id}
+                  data-title={chord.title}
+                  aria-label={`Hapus ${chord.title}`}
+                >
+                  <span>Hapus</span>
+
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 7h16"></path>
+                    <path d="M10 11v6"></path>
+                    <path d="M14 11v6"></path>
+                    <path d="M6 7l1 14h10l1-14"></path>
+                    <path d="M9 7V4h6v3"></path>
+                  </svg>
+                </button>
+              </div>
+
+              <span
+                class="song-hover-line"
+                aria-hidden="true"
+              ></span>
+            </article>
+          ))}
+        </div>
+
+        <!-- Search empty -->
+
+        <div
+          class="library-search-empty"
+          data-search-empty
+          hidden
+        >
+          <span>NO MATCH</span>
+
+          <h3>Tidak ada hasil</h3>
+
+          <p>
+            Tidak ditemukan lagu atau artis
+            yang sesuai dengan pencarian.
+          </p>
+
+          <button
+            type="button"
+            data-reset-search
+          >
+            Tampilkan semua
+          </button>
+        </div>
+      </section>
+    )}
+
+    <!-- =========================================================
+         FOOTER
+    ========================================================== -->
+
+    <footer class="admin-footer">
+      <div class="footer-line"></div>
+
+      <div class="footer-content">
+        <span>SENAR ADMIN</span>
+
+        <span>
+          {chords.length} RECORDS
+        </span>
+
+        <span>
+          {new Date().getFullYear()}
+        </span>
+      </div>
+    </footer>
+  </main>
+</Layout>
+
+<script>
+  document.addEventListener('astro:page-load', () => {
+    const basePath =
+      window.location.pathname
+        .split('/')
+        .slice(0, 2)
+        .join('/') || '';
+
+    const logoutBtn =
+      document.getElementById(
+        'logoutBtn'
+      ) as HTMLButtonElement | null;
+
+    const searchInput =
+      document.querySelector(
+        '[data-admin-search]'
+      ) as HTMLInputElement | null;
+
+    const resetSearch =
+      document.querySelector(
+        '[data-reset-search]'
+      ) as HTMLButtonElement | null;
+
+    const searchEmpty =
+      document.querySelector(
+        '[data-search-empty]'
+      ) as HTMLElement | null;
+
+    const songs = Array.from(
+      document.querySelectorAll('[data-song]')
+    ) as HTMLElement[];
+
+    /*
+     * =========================================================
+     * LOGOUT
+     * =========================================================
+     */
+
+    logoutBtn?.addEventListener(
+      'click',
+      async () => {
+        if (!logoutBtn) return;
+
+        logoutBtn.disabled = true;
+        logoutBtn.textContent = 'Logging out...';
+
+        try {
+          const response =
+            await fetch(
+              `${basePath}/api/admin/logout`,
+              {
+                method: 'POST'
+              }
+            );
+
+          if (response.ok) {
+            window.location.href =
+              `${basePath}/`;
+
+            return;
+          }
+
+          logoutBtn.disabled = false;
+          logoutBtn.textContent = 'Logout';
+
+          alert(
+            'Logout gagal. Silakan coba lagi.'
+          );
+        } catch (error) {
+          console.error(
+            'Logout error:',
+            error
+          );
+
+          logoutBtn.disabled = false;
+          logoutBtn.textContent = 'Logout';
+
+          alert(
+            'Terjadi kesalahan saat logout.'
+          );
+        }
+      }
+    );
+
+    /*
+     * =========================================================
+     * SEARCH
+     * =========================================================
+     */
+
+    const normalize = (
+      value: string
+    ) => {
+      return value
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(
+          /[\u0300-\u036f]/g,
+          ''
+        )
+        .trim();
+    };
+
+    const updateSearch = () => {
+      if (!searchInput) return;
+
+      const query =
+        normalize(
+          searchInput.value
+        );
+
+      let visibleCount = 0;
+
+      songs.forEach((song) => {
+        const title =
+          normalize(
+            song.dataset.title || ''
+          );
+
+        const artist =
+          normalize(
+            song.dataset.artist || ''
+          );
+
+        const match =
+          query === '' ||
+          title.includes(query) ||
+          artist.includes(query);
+
+        song.hidden = !match;
+
+        if (match) {
+          visibleCount += 1;
+        }
+      });
+
+      if (searchEmpty) {
+        searchEmpty.hidden =
+          visibleCount !== 0;
+      }
+    };
+
+    searchInput?.addEventListener(
+      'input',
+      updateSearch
+    );
+
+    resetSearch?.addEventListener(
+      'click',
+      () => {
+        if (!searchInput) return;
+
+        searchInput.value = '';
+
+        updateSearch();
+
+        searchInput.focus();
+      }
+    );
+
+    /*
+     * /
+     * Focus search
+     */
+
+    window.addEventListener(
+      'keydown',
+      (event) => {
+        const target =
+          event.target;
+
+        if (
+          target instanceof HTMLInputElement ||
+          target instanceof HTMLTextAreaElement
+        ) {
+          if (
+            event.key === 'Escape'
+          ) {
+            searchInput?.blur();
+          }
+
+          return;
+        }
+
+        if (
+          event.key === '/'
+        ) {
+          event.preventDefault();
+
+          searchInput?.focus();
+        }
+      }
+    );
+
+    /*
+     * =========================================================
+     * DELETE
+     * =========================================================
+     */
+
+    document
+      .querySelectorAll(
+        '.delete-button'
+      )
+      .forEach((element) => {
+        const button =
+          element as HTMLButtonElement;
+
+        button.addEventListener(
+          'click',
+          async () => {
+            const id =
+              button.dataset.id;
+
+            const title =
+              button.dataset.title;
+
+            if (!id || !title) {
+              return;
+            }
+
+            const confirmed =
+              window.confirm(
+                `Hapus chord "${title}"?\n\nTindakan ini tidak dapat dibatalkan.`
+              );
+
+            if (!confirmed) {
+              return;
+            }
+
+            const originalHTML =
+              button.innerHTML;
+
+            button.disabled = true;
+
+            button.innerHTML =
+              '<span>Menghapus...</span>';
+
+            try {
+              const response =
+                await fetch(
+                  `${basePath}/api/admin/chords/${id}`,
+                  {
+                    method: 'DELETE'
+                  }
+                );
+
+              if (response.ok) {
+                const row =
+                  button.closest(
+                    '.admin-song'
+                  );
+
+                if (row) {
+                  row.classList.add(
+                    'is-deleting'
+                  );
+                }
+
+                setTimeout(() => {
+                  window.location.reload();
+                }, 260);
+
+                return;
+              }
+
+              button.disabled = false;
+
+              button.innerHTML =
+                originalHTML;
+
+              alert(
+                'Gagal menghapus chord.'
+              );
+            } catch (error) {
+              console.error(
+                'Delete error:',
+                error
+              );
+
+              button.disabled = false;
+
+              button.innerHTML =
+                originalHTML;
+
+              alert(
+                'Terjadi kesalahan saat menghapus chord.'
+              );
+            }
+          }
+        );
+      });
+
+    /*
+     * =========================================================
+     * PAGE ENTER
+     * =========================================================
+     */
+
+    requestAnimationFrame(() => {
+      document
+        .querySelector('.admin-page')
+        ?.classList.add(
+          'is-ready'
+        );
+    });
+  });
+</script>
+
+<style is:global>
+  .admin-page {
+    --black: #090909;
+    --ink: #171717;
+    --muted: #737373;
+    --soft: #a3a3a3;
+    --line: #e3e3e3;
+    --lighter: #f7f7f7;
+    --white: #ffffff;
+
+    width: 100%;
+    max-width: 1050px;
+
+    margin: 0 auto;
+
+    padding: 52px 28px 70px;
+
+    color: var(--ink);
+  }
+
+  /* =========================================================
+     HEADER
+  ========================================================== */
+
+  .admin-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+
+    gap: 35px;
+
+    margin-bottom: 42px;
+  }
+
+  .admin-eyebrow {
+    display: flex;
+    align-items: center;
+
+    gap: 9px;
+
+    margin-bottom: 16px;
+
+    color: var(--muted);
+
+    font-family:
+      ui-monospace,
+      SFMono-Regular,
+      Menlo,
+      Monaco,
+      Consolas,
+      monospace;
+
+    font-size: 8px;
+    font-weight: 800;
+
+    letter-spacing: 0.18em;
+  }
+
+  .eyebrow-mark {
+    width: 21px;
+    height: 1px;
+
+    background: var(--black);
+  }
+
+  .admin-heading-row {
+    display: flex;
+    align-items: flex-end;
+
+    gap: 28px;
+  }
+
+  .admin-heading-row h1 {
+    margin: 0;
+
+    color: var(--black);
+
+    font-size:
+      clamp(2.3rem, 6vw, 4.3rem);
+
+    line-height: 0.9;
+
+    font-weight: 900;
+
+    letter-spacing: -0.06em;
+  }
+
+  .admin-heading-row p {
+    max-width: 420px;
+
+    margin: 17px 0 0;
+
+    color: var(--muted);
+
+    font-size: 13px;
+
+    line-height: 1.65;
+  }
+
+  .library-stat {
+    display: flex;
+    flex-direction: column;
+
+    align-items: flex-end;
+
+    padding-bottom: 2px;
+  }
+
+  .library-stat span {
+    margin-bottom: 3px;
+
+    color: var(--soft);
+
+    font-family:
+      ui-monospace,
+      SFMono-Regular,
+      Menlo,
+      Monaco,
+      Consolas,
+      monospace;
+
+    font-size: 7px;
+    font-weight: 800;
+
+    letter-spacing: 0.14em;
+  }
+
+  .library-stat strong {
+    color: var(--black);
+
+    font-family:
+      ui-monospace,
+      SFMono-Regular,
+      Menlo,
+      Monaco,
+      Consolas,
+      monospace;
+
+    font-size: 29px;
+
+    line-height: 1;
+
+    font-weight: 800;
+
+    letter-spacing: -0.08em;
+  }
+
+  /* =========================================================
+     ACTIONS
+  ========================================================== */
+
+  .admin-actions {
+    display: flex;
+    align-items: center;
+
+    gap: 7px;
+  }
+
+  .primary-action,
+  .secondary-action {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 7px;
+
+    height: 37px;
+
+    padding: 0 13px;
+
+    text-decoration: none;
+
+    font-size: 10px;
+    font-weight: 750;
+
+    transition:
+      background 160ms ease,
+      color 160ms ease,
+      border-color 160ms ease,
+      transform 160ms ease;
+  }
+
+  .primary-action {
+    border: 1px solid var(--black);
+
+    background: var(--black);
+
+    color: white;
+  }
+
+  .primary-action:hover {
+    background: white;
+    color: var(--black);
+  }
+
+  .primary-action:active,
+  .secondary-action:active {
+    transform: translateY(1px);
+  }
+
+  .secondary-action {
+    border: 1px solid var(--line);
+
+    background: white;
+
+    color: var(--muted);
+  }
+
+  .secondary-action:hover {
+    border-color: #c9c9c9;
+
+    color: var(--black);
+  }
+
+  .primary-action svg,
+  .secondary-action svg {
+    width: 13px;
+    height: 13px;
+
+    fill: none;
+
+    stroke: currentColor;
+
+    stroke-width: 1.6;
+
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* =========================================================
+     TOOLBAR
+  ========================================================== */
+
+  .admin-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 20px;
+
+    padding: 10px 0;
+
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+
+    margin-bottom: 18px;
+  }
+
+  .toolbar-left {
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+  }
+
+  .toolbar-title {
+    color: var(--black);
+
+    font-family:
+      ui-monospace,
+      SFMono-Regular,
+      Menlo,
+      Monaco,
+      Consolas,
+      monospace;
+
+    font-size: 8px;
+
+    font-weight: 800;
+
+    letter-spacing: 0.13em;
+  }
+
+  .toolbar-divider {
+    width: 3px;
+    height: 3px;
+
+    border-radius: 50%;
+
+    background: #cfcfcf;
+  }
+
+  .toolbar-count {
+    color: var(--soft);
+
+    font-family:
+      ui-monospace,
+      SFMono-Regular,
+      Menlo,
+      Monaco,
+      Consolas,
+      monospace;
+
+    font-size: 8px;
+
+    font-weight: 700;
+  }
+
+  .toolbar-right {
+    display: flex;
+    align-items: center;
+
+    gap: 12px;
+  }
+
+  .admin-search {
+    display: flex;
+    align-items: center;
+
+    width: 270px;
+    height: 34px;
+
+    border: 1px solid var(--line);
+
+    background: white;
+
+    transition:
+      border-color 160ms ease,
+      box-shadow 160ms ease;
+  }
+
+  .admin-search:focus-within {
+    border-color: var(--black);
+
+    box-shadow:
+      0 0 0 1px var(--black);
+  }
+
+  .admin-search > svg {
+    width: 13px;
+    height: 13px;
+
+    margin-left: 10px;
+
+    fill: none;
+
+    stroke: #737373;
+
+    stroke-width: 1.6;
+
+    stroke-linecap: round;
+  }
+
+  .admin-search input {
+    min-width: 0;
+
+    flex: 1;
+
+    height: 100%;
+
+    padding: 0 8px;
+
+    border: 0;
+    outline: 0;
+
+    background: transparent;
+
+    color: var(--black);
+
+    font-size: 10px;
+  }
+
+  .admin-search input::placeholder {
+    color: #a3a3a3;
+  }
+
+  .admin-search kbd {
+    margin-right: 7px;
+
+    padding: 3px 5px;
+
+    border: 1px solid #e6e6e6;
+
+    background: #fafafa;
+
+    color: #a3a3a3;
+
+    font-family:
+      ui-monospace,
+      SFMono-Regular,
+      Menlo,
+      Monaco,
+      Consolas,
+      monospace;
+
+    font-size: 8px;
+  }
+
+  .logout-button {
+    height: 34px;
+
+    padding: 0 7px;
+
+    border: 0;
+
+    background: transparent;
+
+    color: var(--muted);
+
+    font-size: 10px;
+
+    font-weight: 650;
+
+    cursor: pointer;
+
+    transition: color 150ms ease;
+  }
+
+  .logout-button:hover {
+    color: var(--black);
+  }
+
+  .logout-button:disabled {
+    opacity: 0.45;
+
+    cursor: wait;
+  }
+
+  /* =========================================================
+     TABLE
+  ========================================================== */
+
+  .library-table-head {
+    display: grid;
+
+    grid-template-columns:
+      58px
+      minmax(0, 1fr)
+      100px
+      190px;
+
+    align-items: center;
+
+    height: 33px;
+
+    padding: 0 15px;
+
+    border-bottom: 1px solid var(--black);
+
+    color: var(--soft);
+
+    font-family:
+      ui-monospace,
+      SFMono-Regular,
+      Menlo,
+      Monaco,
+      Consolas,
+      monospace;
+
+    font-size: 7px;
+
+    font-weight: 800;
+
+    letter-spacing: 0.14em;
+  }
+
+  .library-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .admin-song {
+    position: relative;
+
+    display: grid;
+
+    grid-template-columns:
+      58px
+      minmax(0, 1fr)
+      100px
+      190px;
+
+    align-items: center;
+
+    min-height: 76px;
+
+    padding: 0 15px;
+
+    border-bottom: 1px solid var(--line);
+
+    background: white;
+
+    transition:
+      background 160ms ease,
+      transform 180ms
+        cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 220ms ease;
+  }
+
+  .admin-song:hover {
+    background: #fcfcfc;
+
+    transform: translateX(3px);
+  }
+
+  .admin-song[hidden] {
+    display: none;
+  }
+
+  .admin-song.is-deleting {
+    opacity: 0;
+
+    transform: translateX(-10px);
+  }
+
+  .song-number {
+    color: #a3a3a3;
+
+    font-family:
+      ui-monospace,
+      SFMono-Regular,
+      Menlo,
+      Monaco,
+      Consolas,
+      monospace;
+
+    font-size: 9px;
+
+    font-weight: 800;
+  }
+
+  .song-information {
+    min-width: 0;
+  }
+
+  .song-information h2 {
+    margin: 0;
+
+    overflow: hidden;
+
+    color: var(--black);
+
+    font-size: 13px;
+
+    line-height: 1.25;
+
+    font-weight: 800;
+
+    letter-spacing: -0.018em;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .song-information p {
+    margin: 5px 0 0;
+
+    overflow: hidden;
+
+    color: var(--muted);
+
+    font-size: 10px;
+
+    line-height: 1.2;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .song-key {
+    display: flex;
+    align-items: center;
+
+    gap: 7px;
+  }
+
+  .song-key > span:first-child {
+    color: var(--soft);
+
+    font-family:
+      ui-monospace,
+      SFMono-Regular,
+      Menlo,
+      Monaco,
+      Consolas,
+      monospace;
+
+    font-size: 7px;
+
+    font-weight: 800;
+
+    letter-spacing: 0.08em;
+  }
+
+  .song-key strong {
+    color: var(--black);
+
+    font-family:
+      ui-monospace,
+      SFMono-Regular,
+      Menlo,
+      Monaco,
+      Consolas,
+      monospace;
+
+    font-size: 10px;
+
+    font-weight: 800;
+  }
+
+  .song-key .no-key {
+    color: #bcbcbc;
+  }
+
+  .song-actions {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: flex-end;
+
+    gap: 5px;
+  }
+
+  .edit-button,
+  .delete-button {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 6px;
+
+    min-width: 66px;
+
+    height: 30px;
+
+    padding: 0 9px;
+
+    border: 1px solid var(--line);
+
+    background: white;
+
+    color: var(--muted);
+
+    text-decoration: none;
+
+    font-size: 9px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+      background 150ms ease,
+      color 150ms ease,
+      border-color 150ms ease;
+  }
+
+  .edit-button:hover {
+    border-color: var(--black);
+
+    background: var(--black);
+
+    color: white;
+  }
+
+  .delete-button:hover {
+    border-color: #bcbcbc;
+
+    background: #f4f4f4;
+
+    color: var(--black);
+  }
+
+  .delete-button:disabled {
+    opacity: 0.45;
+
+    cursor: wait;
+  }
+
+  .edit-button svg,
+  .delete-button svg {
+    width: 12px;
+    height: 12px;
+
+    fill: none;
+
+    stroke: currentColor;
+
+    stroke-width: 1.55;
+
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .song-hover-line {
+    position: absolute;
+
+    left: 0;
+    bottom: 0;
+
+    width: 0;
+    height: 2px;
+
+    background: var(--black);
+
+    transition:
+      width 260ms
+        cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .admin-song:hover .song-hover-line {
+    width: 100%;
+  }
+
+  /* =========================================================
+     ERROR
+  ========================================================== */
+
+  .admin-error {
+    display: flex;
+
+    gap: 18px;
+
+    padding: 23px;
+
+    border: 1px solid #d6d6d6;
+
+    background: #fafafa;
+  }
+
+  .error-icon {
+    width: 40px;
+    height: 40px;
+
+    flex: 0 0 auto;
+
+    display: grid;
+    place-items: center;
+
+    border: 1px solid #dcdcdc;
+
+    background: white;
+  }
+
+  .error-icon svg {
+    width: 17px;
+    height: 17px;
+
+    fill: none;
+
+    stroke: var(--black);
+
+    stroke-width: 1.5;
+
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .error-label,
+  .empty-label {
+    display: block;
+
+    margin-bottom: 7px;
+
+    color: var(--soft);
+
+    font-family:
+      ui-monospace,
+      SFMono-Regular,
+      Menlo,
+      Monaco,
+      Consolas,
+      monospace;
+
+    font-size: 7px;
+
+    font-weight: 800;
+
+    letter-spacing: 0.14em;
+  }
+
+  .error-content h2,
+  .empty-content h2 {
+    margin: 0;
+
+    color: var(--black);
+
+    font-size: 17px;
+
+    font-weight: 800;
+
+    letter-spacing: -0.02em;
+  }
+
+  .error-content p,
+  .empty-content p {
+    max-width: 620px;
+
+    margin: 7px 0 12px;
+
+    color: var(--muted);
+
+    font-size: 11px;
+
+    line-height: 1.7;
+  }
+
+  .error-content code {
+    display: inline-block;
+
+    padding: 5px 7px;
+
+    border: 1px solid var(--line);
+
+    background: white;
+
+    color: #525252;
+
+    font-family:
+      ui-monospace,
+      SFMono-Regular,
+      Menlo,
+      Monaco,
+      Consolas,
+      monospace;
+
+    font-size: 8px;
+  }
+
+  /* =========================================================
+     EMPTY
+  ========================================================== */
+
+  .admin-empty {
+    display: grid;
+
+    grid-template-columns:
+      76px
+      minmax(0, 1fr);
+
+    gap: 25px;
+
+    padding: 55px 20px;
+
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .empty-index {
+    color: #d0d0d0;
+
+    font-family:
+      ui-monospace,
+      SFMono-Regular,
+      Menlo,
+      Monaco,
+      Consolas,
+      monospace;
+
+    font-size: 35px;
+
+    font-weight: 800;
+
+    letter-spacing: -0.08em;
+  }
+
+  .empty-action {
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    height: 34px;
+
+    padding: 0 11px;
+
+    border: 1px solid var(--black);
+
+    background: var(--black);
+
+    color: white;
+
+    text-decoration: none;
+
+    font-size: 9px;
+
+    font-weight: 700;
+  }
+
+  .empty-action:hover {
+    background: white;
+
+    color: var(--black);
+  }
+
+  .empty-action svg {
+    width: 12px;
+    height: 12px;
+
+    fill: none;
+
+    stroke: currentColor;
+
+    stroke-width: 1.6;
+
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* =========================================================
+     SEARCH EMPTY
+  ========================================================== */
+
+  .library-search-empty {
+    padding: 70px 20px;
+
+    border-bottom: 1px solid var(--line);
+
+    background: #fcfcfc;
+
+    text-align: center;
+  }
+
+  .library-search-empty[hidden] {
+    display: none;
+  }
+
+  .library-search-empty > span {
+    color: var(--soft);
+
+    font-family:
+      ui-monospace,
+      SFMono-Regular,
+      Menlo,
+      Monaco,
+      Consolas,
+      monospace;
+
+    font-size: 7px;
+
+    font-weight: 800;
+
+    letter-spacing: 0.15em;
+  }
+
+  .library-search-empty h3 {
+    margin: 9px 0 0;
+
+    color: var(--black);
+
+    font-size: 17px;
+
+    font-weight: 800;
+  }
+
+  .library-search-empty p {
+    margin: 6px auto 18px;
+
+    color: var(--muted);
+
+    font-size: 10px;
+  }
+
+  .library-search-empty button {
+    height: 33px;
+
+    padding: 0 12px;
+
+    border: 1px solid var(--black);
+
+    background: var(--black);
+
+    color: white;
+
+    font-size: 9px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+  }
+
+  .library-search-empty button:hover {
+    background: white;
+
+    color: var(--black);
+  }
+
+  /* =========================================================
+     FOOTER
+  ========================================================== */
+
+  .admin-footer {
+    margin-top: 66px;
+  }
+
+  .footer-line {
+    width: 100%;
+    height: 1px;
+
+    background: var(--line);
+  }
+
+  .footer-content {
+    display: flex;
+
+    justify-content: space-between;
+
+    padding-top: 11px;
+
+    color: var(--soft);
+
+    font-family:
+      ui-monospace,
+      SFMono-Regular,
+      Menlo,
+      Monaco,
+      Consolas,
+      monospace;
+
+    font-size: 7px;
+
+    font-weight: 700;
+
+    letter-spacing: 0.12em;
+  }
+
+  .footer-content span:first-child {
+    color: var(--black);
+  }
+
+  /* =========================================================
+     RESPONSIVE
+  ========================================================== */
+
+  @media (max-width: 800px) {
+    .admin-page {
+      padding:
+        35px
+        18px
+        60px;
+    }
+
+    .admin-header {
+      align-items: flex-start;
+
+      flex-direction: column;
+
+      gap: 24px;
+    }
+
+    .admin-actions {
+      width: 100%;
+    }
+
+    .admin-actions > * {
+      flex: 1;
+    }
+
+    .admin-toolbar {
+      align-items: stretch;
+
+      flex-direction: column;
+
+      padding: 11px 0;
+    }
+
+    .toolbar-right {
+      justify-content: space-between;
+    }
+
+    .admin-search {
+      flex: 1;
+
+      width: auto;
+    }
+  }
+
+  @media (max-width: 650px) {
+    .admin-page {
+      padding-inline: 14px;
+    }
+
+    .admin-heading-row {
+      align-items: flex-start;
+
+      gap: 18px;
+    }
+
+    .library-stat {
+      padding-top: 2px;
+    }
+
+    .library-table-head {
+      grid-template-columns:
+        42px
+        minmax(0, 1fr)
+        65px
+        88px;
+
+      padding-inline: 9px;
+    }
+
+    .admin-song {
+      grid-template-columns:
+        42px
+        minmax(0, 1fr)
+        65px
+        88px;
+
+      min-height: 72px;
+
+      padding-inline: 9px;
+    }
+
+    .song-information h2 {
+      font-size: 12px;
+    }
+
+    .song-information p {
+      font-size: 9px;
+    }
+
+    .song-key {
+      gap: 4px;
+    }
+
+    .song-key > span:first-child {
+      display: none;
+    }
+
+    .edit-button,
+    .delete-button {
+      min-width: 0;
+
+      width: 30px;
+
+      padding: 0;
+    }
+
+    .edit-button span,
+    .delete-button span {
+      display: none;
+    }
+
+    .admin-empty {
+      grid-template-columns:
+        48px
+        minmax(0, 1fr);
+
+      gap: 15px;
+
+      padding: 43px 12px;
+    }
+
+    .empty-index {
+      font-size: 25px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .admin-heading-row {
+      display: block;
+    }
+
+    .library-stat {
+      align-items: flex-start;
+
+      margin-top: 18px;
+    }
+
+    .toolbar-left {
+      justify-content: space-between;
+    }
+
+    .toolbar-right {
+      gap: 8px;
+    }
+
+    .logout-button {
+      padding-inline: 4px;
+    }
+
+    .library-table-head {
+      grid-template-columns:
+        36px
+        minmax(0, 1fr)
+        72px;
+    }
+
+    .library-table-head span:nth-child(3) {
+      display: none;
+    }
+
+    .admin-song {
+      grid-template-columns:
+        36px
+        minmax(0, 1fr)
+        72px;
+    }
+
+    .song-key {
+      display: none;
+    }
+
+    .song-actions {
+      gap: 3px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      transition-duration: 0.01ms !important;
+
+      animation-duration: 0.01ms !important;
+    }
+  }
+</style>

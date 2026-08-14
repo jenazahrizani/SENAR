@@ -1,0 +1,1759 @@
+---
+const title = 'Admin Login — SENAR';
+---
+
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+
+    <meta
+      name="robots"
+      content="noindex, nofollow"
+    />
+
+    <title>{title}</title>
+  </head>
+
+  <body>
+    <main class="login-page">
+
+      <!-- =====================================================
+           BACKGROUND DETAILS
+      ====================================================== -->
+
+      <div
+        class="page-grid"
+        aria-hidden="true"
+      ></div>
+
+      <div
+        class="page-mark page-mark-top"
+        aria-hidden="true"
+      >
+        SENAR
+      </div>
+
+      <div
+        class="page-mark page-mark-bottom"
+        aria-hidden="true"
+      >
+        ADMIN ACCESS / 01
+      </div>
+
+      <!-- =====================================================
+           LOGIN
+      ====================================================== -->
+
+      <section class="login-shell">
+
+        <!-- Brand -->
+
+        <header class="brand">
+          <a
+            href="/"
+            class="brand-link"
+            aria-label="Kembali ke SENAR"
+          >
+            <span class="brand-symbol">
+              <span></span>
+              <span></span>
+              <span></span>
+            </span>
+
+            <span class="brand-name">
+              SENAR
+            </span>
+          </a>
+
+          <span class="brand-status">
+            PRIVATE
+          </span>
+        </header>
+
+        <!-- Intro -->
+
+        <div class="login-intro">
+
+          <span class="eyebrow">
+            ADMIN ACCESS
+          </span>
+
+          <h1>
+            Welcome<br />
+            back.
+          </h1>
+
+          <p>
+            Masuk untuk mengelola library
+            chord dan lirik SENAR.
+          </p>
+
+        </div>
+
+        <!-- Form -->
+
+        <form
+          id="loginForm"
+          class="login-form"
+          novalidate
+        >
+
+          <!-- Email -->
+
+          <div class="field">
+
+            <label for="email">
+              <span>
+                EMAIL
+              </span>
+
+              <span class="field-index">
+                01
+              </span>
+            </label>
+
+            <div class="input-wrap">
+
+              <svg
+                class="field-icon"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <rect
+                  x="3"
+                  y="5"
+                  width="18"
+                  height="14"
+                  rx="1"
+                ></rect>
+
+                <path
+                  d="m3 7 9 6 9-6"
+                ></path>
+              </svg>
+
+              <input
+                type="email"
+                id="email"
+                placeholder="admin@email.com"
+                autocomplete="email"
+                inputmode="email"
+                spellcheck="false"
+                required
+              />
+
+            </div>
+
+          </div>
+
+          <!-- Password -->
+
+          <div class="field">
+
+            <label for="password">
+              <span>
+                PASSWORD
+              </span>
+
+              <span class="field-index">
+                02
+              </span>
+            </label>
+
+            <div class="input-wrap">
+
+              <svg
+                class="field-icon"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <rect
+                  x="5"
+                  y="10"
+                  width="14"
+                  height="10"
+                  rx="1"
+                ></rect>
+
+                <path
+                  d="M8 10V7a4 4 0 0 1 8 0v3"
+                ></path>
+              </svg>
+
+              <input
+                type="password"
+                id="password"
+                placeholder="Masukkan password"
+                autocomplete="current-password"
+                required
+              />
+
+              <button
+                type="button"
+                class="password-toggle"
+                id="passwordToggle"
+                aria-label="Tampilkan password"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                  data-eye-open
+                >
+                  <path
+                    d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"
+                  ></path>
+
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="2.5"
+                  ></circle>
+                </svg>
+
+                <svg
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                  data-eye-closed
+                  hidden
+                >
+                  <path
+                    d="m3 3 18 18"
+                  ></path>
+
+                  <path
+                    d="M10.6 10.6a2 2 0 0 0 2.8 2.8"
+                  ></path>
+
+                  <path
+                    d="M9.9 4.2A11.2 11.2 0 0 0 2 12s3.5 6 10 6a11.5 11.5 0 0 0 4.1-.8"
+                  ></path>
+
+                  <path
+                    d="M14.1 4.5A11.3 11.3 0 0 1 22 12s-3.5 6-10 6"
+                  ></path>
+                </svg>
+              </button>
+
+            </div>
+
+          </div>
+
+          <!-- Submit -->
+
+          <button
+            type="submit"
+            id="loginBtn"
+            class="login-button"
+          >
+            <span
+              class="login-button-text"
+              id="loginButtonText"
+            >
+              Sign in
+            </span>
+
+            <span
+              class="login-button-loader"
+              id="loginLoader"
+              hidden
+            >
+              <span></span>
+              <span></span>
+              <span></span>
+            </span>
+
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              id="loginArrow"
+            >
+              <path d="M5 12h13"></path>
+              <path d="m13 6 6 6-6 6"></path>
+            </svg>
+          </button>
+
+          <!-- Error -->
+
+          <div
+            id="errorMessage"
+            class="form-message form-error"
+            role="alert"
+            aria-live="polite"
+          ></div>
+
+          <!-- Loading -->
+
+          <div
+            id="loadingMessage"
+            class="loading-message"
+            aria-live="polite"
+          >
+            AUTHENTICATING
+          </div>
+
+        </form>
+
+        <!-- Footer -->
+
+        <footer class="login-footer">
+
+          <span>
+            SENAR / PRIVATE AREA
+          </span>
+
+          <span>
+            SECURE SESSION
+          </span>
+
+        </footer>
+
+      </section>
+
+    </main>
+
+    <script type="module">
+      import {
+        initializeApp
+      } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+
+      import {
+        getAuth,
+        signInWithEmailAndPassword,
+        browserSessionPersistence,
+        setPersistence
+      } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+      const firebaseConfig = {
+        apiKey:
+          'AIzaSyA1uemHOXmCIdOMr85fweHF0EZ6mZATPR4',
+
+        authDomain:
+          'chordukulelee.firebaseapp.com',
+
+        projectId:
+          'chordukulelee',
+
+        storageBucket:
+          'chordukulelee.firebasestorage.app',
+
+        messagingSenderId:
+          '449808780726',
+
+        appId:
+          '1:449808780726:web:5d4f1a368283af66f04517'
+      };
+
+      const app =
+        initializeApp(
+          firebaseConfig
+        );
+
+      const auth =
+        getAuth(app);
+
+      /*
+       * =========================================================
+       * ELEMENTS
+       * =========================================================
+       */
+
+      const form =
+        document.getElementById(
+          'loginForm'
+        );
+
+      const emailInput =
+        document.getElementById(
+          'email'
+        );
+
+      const passwordInput =
+        document.getElementById(
+          'password'
+        );
+
+      const loginBtn =
+        document.getElementById(
+          'loginBtn'
+        );
+
+      const loginButtonText =
+        document.getElementById(
+          'loginButtonText'
+        );
+
+      const loginLoader =
+        document.getElementById(
+          'loginLoader'
+        );
+
+      const loginArrow =
+        document.getElementById(
+          'loginArrow'
+        );
+
+      const errorMessage =
+        document.getElementById(
+          'errorMessage'
+        );
+
+      const loadingMessage =
+        document.getElementById(
+          'loadingMessage'
+        );
+
+      const passwordToggle =
+        document.getElementById(
+          'passwordToggle'
+        );
+
+      const eyeOpen =
+        document.querySelector(
+          '[data-eye-open]'
+        );
+
+      const eyeClosed =
+        document.querySelector(
+          '[data-eye-closed]'
+        );
+
+      /*
+       * =========================================================
+       * BASE PATH
+       * =========================================================
+       */
+
+      const basePath =
+        window.location.pathname
+          .split('/')
+          .slice(0, 2)
+          .join('/') || '';
+
+      /*
+       * =========================================================
+       * SESSION PERSISTENCE
+       * =========================================================
+       */
+
+      setPersistence(
+        auth,
+        browserSessionPersistence
+      ).catch((error) => {
+        console.warn(
+          'Firebase persistence error:',
+          error
+        );
+      });
+
+      /*
+       * =========================================================
+       * ERROR
+       * =========================================================
+       */
+
+      const showError = (
+        message
+      ) => {
+        if (!errorMessage) return;
+
+        errorMessage.textContent =
+          message;
+
+        errorMessage.classList.add(
+          'is-visible'
+        );
+
+        form?.classList.add(
+          'has-error'
+        );
+      };
+
+      const clearError = () => {
+        if (!errorMessage) return;
+
+        errorMessage.textContent = '';
+
+        errorMessage.classList.remove(
+          'is-visible'
+        );
+
+        form?.classList.remove(
+          'has-error'
+        );
+      };
+
+      /*
+       * =========================================================
+       * LOADING
+       * =========================================================
+       */
+
+      const setLoading = (
+        loading
+      ) => {
+        if (!loginBtn) return;
+
+        loginBtn.disabled =
+          loading;
+
+        loginBtn.classList.toggle(
+          'is-loading',
+          loading
+        );
+
+        if (loginButtonText) {
+          loginButtonText.hidden =
+            loading;
+        }
+
+        if (loginLoader) {
+          loginLoader.hidden =
+            !loading;
+        }
+
+        if (loginArrow) {
+          loginArrow.hidden =
+            loading;
+        }
+
+        if (loadingMessage) {
+          loadingMessage.classList.toggle(
+            'is-visible',
+            loading
+          );
+        }
+      };
+
+      /*
+       * =========================================================
+       * PASSWORD VISIBILITY
+       * =========================================================
+       */
+
+      passwordToggle?.addEventListener(
+        'click',
+        () => {
+          const visible =
+            passwordInput.type ===
+            'text';
+
+          passwordInput.type =
+            visible
+              ? 'password'
+              : 'text';
+
+          passwordToggle.setAttribute(
+            'aria-label',
+            visible
+              ? 'Tampilkan password'
+              : 'Sembunyikan password'
+          );
+
+          if (eyeOpen) {
+            eyeOpen.hidden =
+              !visible;
+          }
+
+          if (eyeClosed) {
+            eyeClosed.hidden =
+              visible;
+          }
+
+          passwordInput.focus();
+        }
+      );
+
+      /*
+       * =========================================================
+       * INPUT INTERACTION
+       * =========================================================
+       */
+
+      [
+        emailInput,
+        passwordInput
+      ].forEach((input) => {
+        input?.addEventListener(
+          'input',
+          clearError
+        );
+
+        input?.addEventListener(
+          'focus',
+          clearError
+        );
+      });
+
+      /*
+       * =========================================================
+       * LOGIN
+       * =========================================================
+       */
+
+      form?.addEventListener(
+        'submit',
+        async (event) => {
+          event.preventDefault();
+
+          clearError();
+
+          const email =
+            emailInput.value.trim();
+
+          const password =
+            passwordInput.value;
+
+          if (!email) {
+            showError(
+              'Email harus diisi.'
+            );
+
+            emailInput.focus();
+
+            return;
+          }
+
+          if (!password) {
+            showError(
+              'Password harus diisi.'
+            );
+
+            passwordInput.focus();
+
+            return;
+          }
+
+          if (
+            !emailInput.checkValidity()
+          ) {
+            showError(
+              'Masukkan alamat email yang valid.'
+            );
+
+            emailInput.focus();
+
+            return;
+          }
+
+          setLoading(true);
+
+          try {
+
+            const userCredential =
+              await signInWithEmailAndPassword(
+                auth,
+                email,
+                password
+              );
+
+            const idToken =
+              await userCredential.user
+                .getIdToken();
+
+            const response =
+              await fetch(
+                `${basePath}/api/admin/session`,
+                {
+                  method: 'POST',
+
+                  headers: {
+                    'Content-Type':
+                      'application/json'
+                  },
+
+                  body:
+                    JSON.stringify({
+                      idToken
+                    })
+                }
+              );
+
+            if (!response.ok) {
+
+              let message =
+                'Gagal membuat session admin.';
+
+              try {
+                const data =
+                  await response.json();
+
+                if (
+                  data &&
+                  typeof data.error ===
+                    'string'
+                ) {
+                  message =
+                    data.error;
+                }
+              } catch {
+                const text =
+                  await response.text();
+
+                if (text) {
+                  message =
+                    text;
+                }
+              }
+
+              throw new Error(
+                message
+              );
+            }
+
+            /*
+             * Success state
+             */
+
+            if (loginButtonText) {
+              loginButtonText.hidden =
+                false;
+
+              loginButtonText.textContent =
+                'Authenticated';
+            }
+
+            if (loginArrow) {
+              loginArrow.hidden =
+                false;
+            }
+
+            if (loginLoader) {
+              loginLoader.hidden =
+                true;
+            }
+
+            loginBtn?.classList.add(
+              'is-success'
+            );
+
+            if (loadingMessage) {
+              loadingMessage.textContent =
+                'ACCESS GRANTED';
+
+              loadingMessage.classList.add(
+                'is-success'
+              );
+            }
+
+            setTimeout(() => {
+              window.location.href =
+                `${basePath}/admin`;
+            }, 500);
+
+          } catch (error) {
+
+            console.error(
+              'Login error:',
+              error
+            );
+
+            const code =
+              error?.code || '';
+
+            if (
+              code ===
+                'auth/invalid-credential' ||
+              code ===
+                'auth/user-not-found' ||
+              code ===
+                'auth/wrong-password'
+            ) {
+              showError(
+                'Email atau password salah.'
+              );
+
+            } else if (
+              code ===
+              'auth/too-many-requests'
+            ) {
+              showError(
+                'Terlalu banyak percobaan. Coba lagi nanti.'
+              );
+
+            } else if (
+              code ===
+              'auth/invalid-email'
+            ) {
+              showError(
+                'Format email tidak valid.'
+              );
+
+            } else {
+              showError(
+                error?.message ||
+                'Terjadi kesalahan. Coba lagi.'
+              );
+            }
+
+            setLoading(false);
+          }
+        }
+      );
+
+      /*
+       * =========================================================
+       * KEYBOARD
+       * =========================================================
+       */
+
+      window.addEventListener(
+        'keydown',
+        (event) => {
+          if (
+            event.key === 'Escape' &&
+            document.activeElement !==
+              passwordInput
+          ) {
+            clearError();
+          }
+        }
+      );
+
+      /*
+       * =========================================================
+       * INITIAL ANIMATION
+       * =========================================================
+       */
+
+      requestAnimationFrame(() => {
+        document.body.classList.add(
+          'is-ready'
+        );
+
+        emailInput?.focus();
+      });
+    </script>
+
+    <style>
+      /* =======================================================
+         RESET
+      ======================================================== */
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html {
+        background: #ffffff;
+      }
+
+      body {
+        min-width: 320px;
+
+        min-height: 100vh;
+
+        background: #ffffff;
+
+        color: #090909;
+
+        font-family:
+          Inter,
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+
+        -webkit-font-smoothing:
+          antialiased;
+
+        text-rendering:
+          optimizeLegibility;
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+
+      /* =======================================================
+         PAGE
+      ======================================================== */
+
+      .login-page {
+        position: relative;
+
+        display: flex;
+
+        align-items: center;
+
+        justify-content: center;
+
+        width: 100%;
+
+        min-height: 100vh;
+
+        overflow: hidden;
+
+        padding:
+          35px
+          25px;
+
+        background: #ffffff;
+      }
+
+      /* =======================================================
+         DECORATIVE GRID
+      ======================================================== */
+
+      .page-grid {
+        position: absolute;
+
+        inset: 0;
+
+        pointer-events: none;
+
+        opacity: 0;
+
+        background-image:
+          linear-gradient(
+            to right,
+            #f1f1f1 1px,
+            transparent 1px
+          ),
+          linear-gradient(
+            to bottom,
+            #f1f1f1 1px,
+            transparent 1px
+          );
+
+        background-size:
+          80px
+          80px;
+
+        transition:
+          opacity
+          900ms
+          ease;
+      }
+
+      body.is-ready .page-grid {
+        opacity: 0.35;
+      }
+
+      /* =======================================================
+         EDGE LABELS
+      ======================================================== */
+
+      .page-mark {
+        position: absolute;
+
+        color: #c5c5c5;
+
+        font-family:
+          ui-monospace,
+          SFMono-Regular,
+          Menlo,
+          Monaco,
+          Consolas,
+          monospace;
+
+        font-size: 7px;
+
+        font-weight: 800;
+
+        letter-spacing:
+          0.18em;
+
+        opacity: 0;
+
+        transition:
+          opacity
+          700ms
+          500ms
+          ease;
+      }
+
+      body.is-ready .page-mark {
+        opacity: 1;
+      }
+
+      .page-mark-top {
+        top: 25px;
+        left: 25px;
+      }
+
+      .page-mark-bottom {
+        right: 25px;
+        bottom: 25px;
+      }
+
+      /* =======================================================
+         SHELL
+      ======================================================== */
+
+      .login-shell {
+        position: relative;
+
+        z-index: 2;
+
+        width: 100%;
+
+        max-width: 430px;
+
+        opacity: 0;
+
+        transform:
+          translateY(16px);
+
+        transition:
+          opacity
+          650ms
+          cubic-bezier(
+            0.22,
+            1,
+            0.36,
+            1
+          ),
+
+          transform
+          650ms
+          cubic-bezier(
+            0.22,
+            1,
+            0.36,
+            1
+          );
+      }
+
+      body.is-ready .login-shell {
+        opacity: 1;
+
+        transform:
+          translateY(0);
+      }
+
+      /* =======================================================
+         BRAND
+      ======================================================== */
+
+      .brand {
+        display: flex;
+
+        align-items: center;
+
+        justify-content: space-between;
+
+        margin-bottom: 70px;
+      }
+
+      .brand-link {
+        display: inline-flex;
+
+        align-items: center;
+
+        gap: 11px;
+
+        color: #090909;
+
+        text-decoration: none;
+      }
+
+      .brand-symbol {
+        position: relative;
+
+        display: flex;
+
+        align-items: flex-end;
+
+        gap: 3px;
+
+        width: 18px;
+
+        height: 18px;
+      }
+
+      .brand-symbol span {
+        display: block;
+
+        width: 4px;
+
+        background: #090909;
+      }
+
+      .brand-symbol span:nth-child(1) {
+        height: 10px;
+      }
+
+      .brand-symbol span:nth-child(2) {
+        height: 16px;
+      }
+
+      .brand-symbol span:nth-child(3) {
+        height: 13px;
+      }
+
+      .brand-name {
+        font-size: 13px;
+
+        font-weight: 900;
+
+        letter-spacing:
+          -0.04em;
+      }
+
+      .brand-status {
+        padding:
+          4px
+          6px;
+
+        border: 1px solid #e5e5e5;
+
+        color: #a3a3a3;
+
+        font-family:
+          ui-monospace,
+          SFMono-Regular,
+          Menlo,
+          Monaco,
+          Consolas,
+          monospace;
+
+        font-size: 6px;
+
+        font-weight: 800;
+
+        letter-spacing:
+          0.12em;
+      }
+
+      /* =======================================================
+         INTRO
+      ======================================================== */
+
+      .login-intro {
+        margin-bottom: 42px;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+
+        align-items: center;
+
+        gap: 8px;
+
+        margin-bottom: 17px;
+
+        color: #737373;
+
+        font-family:
+          ui-monospace,
+          SFMono-Regular,
+          Menlo,
+          Monaco,
+          Consolas,
+          monospace;
+
+        font-size: 8px;
+
+        font-weight: 800;
+
+        letter-spacing:
+          0.18em;
+      }
+
+      .eyebrow::before {
+        content: '';
+
+        width: 20px;
+        height: 1px;
+
+        background: #090909;
+      }
+
+      .login-intro h1 {
+        margin: 0;
+
+        color: #090909;
+
+        font-size:
+          clamp(
+            3.5rem,
+            11vw,
+            5.8rem
+          );
+
+        line-height:
+          0.83;
+
+        font-weight: 900;
+
+        letter-spacing:
+          -0.08em;
+      }
+
+      .login-intro p {
+        max-width: 330px;
+
+        margin-top: 22px;
+
+        color: #737373;
+
+        font-size: 12px;
+
+        line-height: 1.7;
+      }
+
+      /* =======================================================
+         FORM
+      ======================================================== */
+
+      .login-form {
+        width: 100%;
+      }
+
+      .field {
+        margin-bottom: 21px;
+      }
+
+      .field label {
+        display: flex;
+
+        align-items: center;
+
+        justify-content: space-between;
+
+        margin-bottom: 8px;
+
+        color: #737373;
+
+        font-family:
+          ui-monospace,
+          SFMono-Regular,
+          Menlo,
+          Monaco,
+          Consolas,
+          monospace;
+
+        font-size: 7px;
+
+        font-weight: 800;
+
+        letter-spacing:
+          0.14em;
+      }
+
+      .field-index {
+        color: #c1c1c1;
+      }
+
+      .input-wrap {
+        position: relative;
+
+        display: flex;
+
+        align-items: center;
+
+        width: 100%;
+
+        height: 51px;
+
+        border-bottom:
+          1px
+          solid
+          #d8d8d8;
+
+        background: #ffffff;
+
+        transition:
+          border-color
+          180ms
+          ease;
+      }
+
+      .input-wrap::after {
+        content: '';
+
+        position: absolute;
+
+        right: 0;
+        bottom: -1px;
+        left: 0;
+
+        width: 0;
+
+        height: 1px;
+
+        background: #090909;
+
+        transition:
+          width
+          280ms
+          cubic-bezier(
+            0.22,
+            1,
+            0.36,
+            1
+          );
+      }
+
+      .input-wrap:focus-within::after {
+        width: 100%;
+      }
+
+      .field-icon {
+        width: 15px;
+        height: 15px;
+
+        flex: 0 0 auto;
+
+        margin-right: 12px;
+
+        fill: none;
+
+        stroke: #a3a3a3;
+
+        stroke-width: 1.4;
+
+        stroke-linecap: round;
+
+        stroke-linejoin: round;
+
+        transition:
+          stroke
+          180ms
+          ease;
+      }
+
+      .input-wrap:focus-within
+      .field-icon {
+        stroke: #090909;
+      }
+
+      .input-wrap input {
+        min-width: 0;
+
+        width: 100%;
+
+        height: 100%;
+
+        border: 0;
+
+        outline: 0;
+
+        background: transparent;
+
+        color: #090909;
+
+        font-size: 13px;
+
+        font-weight: 550;
+      }
+
+      .input-wrap input::placeholder {
+        color: #b8b8b8;
+      }
+
+      .password-toggle {
+        display: grid;
+
+        place-items: center;
+
+        width: 32px;
+        height: 32px;
+
+        flex: 0 0 auto;
+
+        border: 0;
+
+        background: transparent;
+
+        color: #a3a3a3;
+
+        cursor: pointer;
+
+        transition:
+          color
+          150ms
+          ease;
+      }
+
+      .password-toggle:hover {
+        color: #090909;
+      }
+
+      .password-toggle svg {
+        width: 15px;
+        height: 15px;
+
+        fill: none;
+
+        stroke: currentColor;
+
+        stroke-width: 1.5;
+
+        stroke-linecap: round;
+
+        stroke-linejoin: round;
+      }
+
+      /* =======================================================
+         LOGIN BUTTON
+      ======================================================== */
+
+      .login-button {
+        position: relative;
+
+        display: flex;
+
+        align-items: center;
+
+        justify-content: space-between;
+
+        width: 100%;
+
+        height: 50px;
+
+        margin-top: 30px;
+
+        padding:
+          0
+          14px;
+
+        border:
+          1px
+          solid
+          #090909;
+
+        background:
+          #090909;
+
+        color: #ffffff;
+
+        cursor: pointer;
+
+        transition:
+          background
+          180ms
+          ease,
+
+          color
+          180ms
+          ease,
+
+          border-color
+          180ms
+          ease;
+      }
+
+      .login-button:hover:not(:disabled) {
+        background: #ffffff;
+
+        color: #090909;
+      }
+
+      .login-button:active:not(:disabled) {
+        transform:
+          translateY(1px);
+      }
+
+      .login-button:disabled {
+        cursor: wait;
+
+        opacity: 0.55;
+      }
+
+      .login-button-text {
+        font-size: 10px;
+
+        font-weight: 800;
+
+        letter-spacing:
+          0.01em;
+      }
+
+      .login-button > svg {
+        width: 14px;
+        height: 14px;
+
+        fill: none;
+
+        stroke: currentColor;
+
+        stroke-width: 1.5;
+
+        stroke-linecap: round;
+
+        stroke-linejoin: round;
+      }
+
+      .login-button.is-success {
+        background: #ffffff;
+
+        color: #090909;
+      }
+
+      /* =======================================================
+         LOADER
+      ======================================================== */
+
+      .login-button-loader {
+        display: flex;
+
+        align-items: center;
+
+        gap: 4px;
+      }
+
+      .login-button-loader span {
+        width: 4px;
+        height: 4px;
+
+        border-radius: 50%;
+
+        background: currentColor;
+
+        animation:
+          loginDot
+          900ms
+          infinite
+          ease-in-out;
+      }
+
+      .login-button-loader span:nth-child(2) {
+        animation-delay: 120ms;
+      }
+
+      .login-button-loader span:nth-child(3) {
+        animation-delay: 240ms;
+      }
+
+      @keyframes loginDot {
+        0%,
+        60%,
+        100% {
+          opacity: 0.3;
+
+          transform:
+            translateY(0);
+        }
+
+        30% {
+          opacity: 1;
+
+          transform:
+            translateY(-3px);
+        }
+      }
+
+      /* =======================================================
+         MESSAGES
+      ======================================================== */
+
+      .form-message {
+        margin-top: 13px;
+
+        padding:
+          10px
+          11px;
+
+        border: 1px solid #dedede;
+
+        background: #fafafa;
+
+        color: #525252;
+
+        font-size: 10px;
+
+        line-height: 1.5;
+
+        opacity: 0;
+
+        transform:
+          translateY(-3px);
+
+        pointer-events: none;
+
+        transition:
+          opacity
+          160ms
+          ease,
+
+          transform
+          160ms
+          ease;
+      }
+
+      .form-message.is-visible {
+        opacity: 1;
+
+        transform:
+          translateY(0);
+
+        pointer-events: auto;
+      }
+
+      .form-error {
+        color: #090909;
+      }
+
+      .loading-message {
+        margin-top: 13px;
+
+        color: #a3a3a3;
+
+        font-family:
+          ui-monospace,
+          SFMono-Regular,
+          Menlo,
+          Monaco,
+          Consolas,
+          monospace;
+
+        font-size: 6px;
+
+        font-weight: 800;
+
+        letter-spacing:
+          0.16em;
+
+        opacity: 0;
+
+        transition:
+          opacity
+          160ms
+          ease;
+      }
+
+      .loading-message.is-visible {
+        opacity: 1;
+      }
+
+      .loading-message.is-success {
+        color: #090909;
+      }
+
+      /* =======================================================
+         FOOTER
+      ======================================================== */
+
+      .login-footer {
+        display: flex;
+
+        align-items: center;
+
+        justify-content: space-between;
+
+        gap: 15px;
+
+        margin-top: 60px;
+
+        padding-top: 12px;
+
+        border-top:
+          1px
+          solid
+          #eeeeee;
+
+        color: #b1b1b1;
+
+        font-family:
+          ui-monospace,
+          SFMono-Regular,
+          Menlo,
+          Monaco,
+          Consolas,
+          monospace;
+
+        font-size: 6px;
+
+        font-weight: 700;
+
+        letter-spacing:
+          0.1em;
+      }
+
+      /* =======================================================
+         MOBILE
+      ======================================================== */
+
+      @media (max-width: 600px) {
+
+        .login-page {
+          align-items: flex-start;
+
+          padding:
+            28px
+            18px;
+        }
+
+        .login-shell {
+          max-width: 100%;
+        }
+
+        .brand {
+          margin-bottom: 65px;
+        }
+
+        .login-intro {
+          margin-bottom: 37px;
+        }
+
+        .login-intro h1 {
+          font-size:
+            clamp(
+              3.5rem,
+              18vw,
+              5.2rem
+            );
+        }
+
+        .page-grid {
+          background-size:
+            60px
+            60px;
+        }
+
+        .page-mark {
+          display: none;
+        }
+      }
+
+      @media (max-width: 380px) {
+
+        .login-page {
+          padding:
+            24px
+            15px;
+        }
+
+        .login-intro h1 {
+          font-size: 3.4rem;
+        }
+
+        .login-footer {
+          font-size: 5px;
+        }
+      }
+
+      /* =======================================================
+         REDUCED MOTION
+      ======================================================== */
+
+      @media (prefers-reduced-motion: reduce) {
+
+        *,
+        *::before,
+        *::after {
+          animation-duration:
+            0.01ms !important;
+
+          animation-iteration-count:
+            1 !important;
+
+          transition-duration:
+            0.01ms !important;
+        }
+      }
+    </style>
+  </body>
+</html>

@@ -1,0 +1,470 @@
+---
+export interface Props {
+  id: string;
+  title: string;
+  artist: string;
+  key?: string;
+  slug: string;
+  index?: number;
+}
+
+const { id, title, artist, key, slug, index = 0 } = Astro.props;
+
+const base = import.meta.env.BASE_URL || '';
+
+const number = String(index + 1).padStart(2, '0');
+---
+
+<a
+  href={`${base}/${slug}`}
+  class="song-card group"
+  aria-label={`Buka chord ${title} oleh ${artist}`}
+>
+  <article class="song-card-inner">
+
+    <!-- =========================================================
+         INDEX
+    ========================================================== -->
+
+    <div class="song-index" aria-hidden="true">
+      <span>{number}</span>
+    </div>
+
+    <!-- =========================================================
+         MAIN INFORMATION
+    ========================================================== -->
+
+    <div class="song-information">
+      <h2 class="song-title">
+        {title}
+      </h2>
+
+      <div class="song-artist-row">
+        <span class="song-artist">
+          {artist}
+        </span>
+
+        {key && (
+          <>
+            <span class="artist-divider"></span>
+
+            <span class="song-key">
+              <span class="key-label">KEY</span>
+              <span>{key}</span>
+            </span>
+          </>
+        )}
+      </div>
+    </div>
+
+    <!-- =========================================================
+         ACTION / ARROW
+    ========================================================== -->
+
+    <div class="song-action" aria-hidden="true">
+      <span class="action-label">
+        OPEN
+      </span>
+
+      <span class="arrow">
+        <svg viewBox="0 0 24 24">
+          <path d="M5 12h13"></path>
+          <path d="m13 6 6 6-6 6"></path>
+        </svg>
+      </span>
+    </div>
+
+    <!-- Hover line -->
+    <span class="song-accent" aria-hidden="true"></span>
+
+  </article>
+</a>
+
+<style>
+  /* =========================================================
+     SONG CARD
+  ========================================================== */
+
+  .song-card {
+    position: relative;
+    display: block;
+    width: 100%;
+    text-decoration: none;
+    color: inherit;
+    outline: none;
+  }
+
+  .song-card-inner {
+    position: relative;
+    display: grid;
+    grid-template-columns: 46px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 20px;
+
+    min-height: 88px;
+    padding: 15px 16px;
+
+    overflow: hidden;
+
+    border: 1px solid #e1e1e1;
+    background: #fff;
+
+    transition:
+      border-color 180ms ease,
+      background 180ms ease,
+      transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .song-card:hover .song-card-inner {
+    border-color: #bdbdbd;
+    background: #fcfcfc;
+    transform: translateX(4px);
+  }
+
+  .song-card:active .song-card-inner {
+    transform: translateX(2px) scale(0.995);
+  }
+
+  .song-card:focus-visible .song-card-inner {
+    border-color: #090909;
+    box-shadow: 0 0 0 2px #090909;
+  }
+
+  /* =========================================================
+     INDEX
+  ========================================================== */
+
+  .song-index {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 38px;
+    height: 38px;
+
+    border: 1px solid #ebebeb;
+    background: #fafafa;
+
+    color: #a3a3a3;
+
+    font-family:
+      ui-monospace,
+      SFMono-Regular,
+      Menlo,
+      Monaco,
+      Consolas,
+      monospace;
+
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+
+    transition:
+      background 180ms ease,
+      color 180ms ease,
+      border-color 180ms ease;
+  }
+
+  .song-card:hover .song-index {
+    border-color: #d2d2d2;
+    background: #090909;
+    color: #fff;
+  }
+
+  /* =========================================================
+     INFORMATION
+  ========================================================== */
+
+  .song-information {
+    min-width: 0;
+  }
+
+  .song-title {
+    margin: 0;
+
+    overflow: hidden;
+
+    color: #090909;
+
+    font-family:
+      Inter,
+      ui-sans-serif,
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      sans-serif;
+
+    font-size: 15px;
+    line-height: 1.25;
+    font-weight: 800;
+
+    letter-spacing: -0.025em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    transition: color 160ms ease;
+  }
+
+  .song-card:hover .song-title {
+    color: #000;
+  }
+
+  .song-artist-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    margin-top: 8px;
+  }
+
+  .song-artist {
+    overflow: hidden;
+
+    max-width: 340px;
+
+    color: #737373;
+
+    font-family:
+      Inter,
+      ui-sans-serif,
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      sans-serif;
+
+    font-size: 11px;
+    line-height: 1.2;
+    font-weight: 500;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .artist-divider {
+    width: 3px;
+    height: 3px;
+
+    flex: 0 0 auto;
+
+    border-radius: 50%;
+    background: #cfcfcf;
+  }
+
+  .song-key {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+
+    color: #171717;
+
+    font-family:
+      ui-monospace,
+      SFMono-Regular,
+      Menlo,
+      Monaco,
+      Consolas,
+      monospace;
+
+    font-size: 10px;
+    font-weight: 800;
+  }
+
+  .key-label {
+    color: #a3a3a3;
+
+    font-size: 7px;
+    font-weight: 800;
+
+    letter-spacing: 0.08em;
+  }
+
+  /* =========================================================
+     ACTION
+  ========================================================== */
+
+  .song-action {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    color: #a3a3a3;
+
+    transition:
+      color 180ms ease,
+      transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .song-card:hover .song-action {
+    color: #090909;
+    transform: translateX(2px);
+  }
+
+  .action-label {
+    font-family:
+      ui-monospace,
+      SFMono-Regular,
+      Menlo,
+      Monaco,
+      Consolas,
+      monospace;
+
+    font-size: 7px;
+    font-weight: 800;
+    letter-spacing: 0.13em;
+  }
+
+  .arrow {
+    width: 31px;
+    height: 31px;
+
+    display: grid;
+    place-items: center;
+
+    border: 1px solid #ebebeb;
+    background: #fff;
+
+    transition:
+      background 180ms ease,
+      border-color 180ms ease;
+  }
+
+  .song-card:hover .arrow {
+    background: #090909;
+    border-color: #090909;
+    color: #fff;
+  }
+
+  .arrow svg {
+    width: 14px;
+    height: 14px;
+
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+
+    stroke-linecap: round;
+    stroke-linejoin: round;
+
+    transition:
+      transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .song-card:hover .arrow svg {
+    transform: translateX(2px);
+  }
+
+  /* =========================================================
+     ACCENT LINE
+  ========================================================== */
+
+  .song-accent {
+    position: absolute;
+
+    left: 0;
+    bottom: 0;
+
+    width: 0;
+    height: 2px;
+
+    background: #090909;
+
+    transition:
+      width 280ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .song-card:hover .song-accent {
+    width: 100%;
+  }
+
+  /* =========================================================
+     MOBILE
+  ========================================================== */
+
+  @media (max-width: 600px) {
+    .song-card-inner {
+      grid-template-columns: 34px minmax(0, 1fr) auto;
+      gap: 13px;
+
+      min-height: 78px;
+
+      padding: 12px;
+    }
+
+    .song-index {
+      width: 32px;
+      height: 32px;
+
+      font-size: 8px;
+    }
+
+    .song-title {
+      font-size: 14px;
+    }
+
+    .song-artist-row {
+      margin-top: 6px;
+      gap: 7px;
+    }
+
+    .song-artist {
+      max-width: 180px;
+      font-size: 10px;
+    }
+
+    .song-key {
+      font-size: 9px;
+    }
+
+    .action-label {
+      display: none;
+    }
+
+    .arrow {
+      width: 28px;
+      height: 28px;
+    }
+
+    .arrow svg {
+      width: 13px;
+      height: 13px;
+    }
+
+    /*
+     * Disable horizontal movement on touch devices.
+     * The card should feel stable while tapping.
+     */
+    .song-card:hover .song-card-inner {
+      transform: none;
+    }
+  }
+
+  @media (max-width: 390px) {
+    .song-card-inner {
+      grid-template-columns: 30px minmax(0, 1fr) auto;
+      gap: 10px;
+    }
+
+    .song-index {
+      width: 28px;
+      height: 28px;
+    }
+
+    .song-artist {
+      max-width: 145px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .song-card-inner,
+    .song-index,
+    .song-action,
+    .arrow,
+    .arrow svg,
+    .song-accent {
+      transition: none;
+    }
+  }
+</style>

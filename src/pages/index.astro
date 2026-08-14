@@ -1,0 +1,1240 @@
+---
+export const prerender = false;
+
+import Layout from '../components/Layout.astro';
+import SongCard from '../components/SongCard.astro';
+import { adminDb } from '../lib/firebase-admin';
+import { generateSlug } from '../lib/chordParser';
+
+interface Chord {
+  id: string;
+  title: string;
+  artist: string;
+  key?: string;
+  content: string;
+}
+
+const base = import.meta.env.BASE_URL || '';
+
+const snapshot = await adminDb
+  .collection('chords')
+  .orderBy('title', 'asc')
+  .get();
+
+const chords = snapshot.docs.map((doc) => {
+  const data = doc.data();
+
+  return {
+    id: doc.id,
+    ...data,
+    slug: generateSlug(data.title),
+  };
+}) as Array<Chord & { slug: string }>;
+---
+
+<Layout title="SENAR — Chord Ukulele">
+  <main class="home-page">
+
+    <section class="hero-section">
+      <div class="hero-topline">
+        <div class="hero-eyebrow">
+          <span class="eyebrow-mark"></span>
+          <span>UKULELE CHORD LIBRARY</span>
+        </div>
+
+        <span class="hero-version">
+          SENAR / 01
+        </span>
+      </div>
+
+      <div class="hero-content">
+        <div class="hero-copy">
+          <h1>SENAR</h1>
+
+          <p>
+            Chord ukulele yang sederhana,
+            cepat ditemukan, dan nyaman dimainkan.
+          </p>
+        </div>
+
+        <div class="hero-index">
+          <span class="index-label">LIBRARY</span>
+
+          <strong>
+            {String(chords.length).padStart(2, '0')}
+          </strong>
+
+          <span class="index-caption">
+            SONGS
+          </span>
+        </div>
+      </div>
+
+      <div class="hero-rule"></div>
+    </section>
+
+    <section class="search-section">
+      <div class="search-box">
+        <div class="search-icon">
+          <svg
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <circle
+              cx="11"
+              cy="11"
+              r="6.5"
+            ></circle>
+
+            <path d="m16 16 5 5"></path>
+          </svg>
+        </div>
+
+        <input
+          id="song-search"
+          type="search"
+          placeholder="Cari lagu atau artis..."
+          autocomplete="off"
+          spellcheck="false"
+          aria-label="Cari lagu atau artis"
+        />
+
+        <div class="search-meta">
+          <kbd>/</kbd>
+
+          <button
+            type="button"
+            class="clear-search"
+            id="clearSearch"
+            aria-label="Hapus pencarian"
+            hidden
+          >
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path d="M6 6l12 12"></path>
+              <path d="M18 6 6 18"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="search-status">
+        <span id="resultCount">
+          {chords.length} lagu
+        </span>
+
+        <span class="search-status-separator"></span>
+
+        <span>
+          UKULELE / ALL KEYS
+        </span>
+      </div>
+    </section>
+
+    <section class="library-section">
+      <div class="library-heading">
+        <div class="library-heading-main">
+          <span class="section-kicker">
+            YOUR LIBRARY
+          </span>
+
+          <div class="library-title-row">
+            <h2>Semua lagu</h2>
+            <span class="library-live-dot"></span>
+          </div>
+        </div>
+
+        <div class="library-line"></div>
+
+        <span class="library-count">
+          {String(chords.length).padStart(2, '0')}
+        </span>
+      </div>
+
+      {chords.length === 0 && (
+        <div class="empty-library">
+          <div class="empty-symbol">
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                d="M8 3v13.5a3.5 3.5 0 1 0 2 3.15V7h8V5H8z"
+              ></path>
+            </svg>
+          </div>
+
+          <span class="empty-label">
+            LIBRARY EMPTY
+          </span>
+
+          <h3>Belum ada chord</h3>
+
+          <p>
+            Library masih kosong.
+            Login sebagai admin untuk
+            menambahkan lagu pertama.
+          </p>
+        </div>
+      )}
+
+      {chords.length > 0 && (
+        <div
+          class="song-list"
+          id="songList"
+        >
+          {chords.map((chord, index) => (
+            <div
+              class="song-card-wrapper"
+              data-song
+              data-title={chord.title.toLowerCase()}
+              data-artist={chord.artist.toLowerCase()}
+              style={`--card-index: ${index}`}
+            >
+              <SongCard
+                id={chord.id}
+                title={chord.title}
+                artist={chord.artist}
+                key={chord.key}
+                slug={chord.slug}
+                index={index}
+              />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {chords.length > 0 && (
+        <div
+          class="search-empty"
+          id="searchEmpty"
+          hidden
+        >
+          <div class="empty-search-icon">
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <circle
+                cx="11"
+                cy="11"
+                r="6.5"
+              ></circle>
+
+              <path d="m16 16 5 5"></path>
+            </svg>
+          </div>
+
+          <span class="empty-label">
+            NO MATCH
+          </span>
+
+          <h3>Tidak ditemukan</h3>
+
+          <p>
+            Tidak ada lagu atau artis yang cocok
+            dengan pencarianmu.
+          </p>
+
+          <button
+            type="button"
+            id="resetSearch"
+          >
+            Tampilkan semua lagu
+          </button>
+        </div>
+      )}
+    </section>
+
+    <footer class="home-footer">
+      <div class="footer-rule"></div>
+
+      <div class="footer-content">
+        <span>SENAR</span>
+        <span>CHORD UKULELE</span>
+        <span>{new Date().getFullYear()}</span>
+      </div>
+    </footer>
+
+  </main>
+</Layout>
+
+<script>
+  const root = document.querySelector('.home-page');
+  const searchInput = document.getElementById('song-search');
+  const clearButton = document.getElementById('clearSearch');
+  const resetButton = document.getElementById('resetSearch');
+  const resultCount = document.getElementById('resultCount');
+  const searchEmpty = document.getElementById('searchEmpty');
+
+  const songs = Array.from(
+    document.querySelectorAll('[data-song]')
+  );
+
+  const normalize = (value) => {
+    return value
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim();
+  };
+
+  const updateSearch = () => {
+    if (!(searchInput instanceof HTMLInputElement)) {
+      return;
+    }
+
+    const query = normalize(
+      searchInput.value
+    );
+
+    let visible = 0;
+
+    songs.forEach((song) => {
+      if (!(song instanceof HTMLElement)) {
+        return;
+      }
+
+      const title = normalize(
+        song.dataset.title || ''
+      );
+
+      const artist = normalize(
+        song.dataset.artist || ''
+      );
+
+      const matches =
+        query === '' ||
+        title.includes(query) ||
+        artist.includes(query);
+
+      song.hidden = !matches;
+
+      if (matches) {
+        visible += 1;
+      }
+    });
+
+    if (resultCount) {
+      resultCount.textContent =
+        `${visible} lagu`;
+    }
+
+    if (clearButton) {
+      clearButton.hidden =
+        query.length === 0;
+    }
+
+    if (searchEmpty) {
+      searchEmpty.hidden =
+        visible !== 0;
+    }
+
+    if (root) {
+      root.classList.toggle(
+        'is-searching',
+        query.length > 0
+      );
+    }
+  };
+
+  if (searchInput instanceof HTMLInputElement) {
+    searchInput.addEventListener(
+      'input',
+      updateSearch
+    );
+  }
+
+  if (clearButton) {
+    clearButton.addEventListener(
+      'click',
+      () => {
+        if (!(searchInput instanceof HTMLInputElement)) {
+          return;
+        }
+
+        searchInput.value = '';
+
+        updateSearch();
+
+        searchInput.focus();
+      }
+    );
+  }
+
+  if (resetButton) {
+    resetButton.addEventListener(
+      'click',
+      () => {
+        if (!(searchInput instanceof HTMLInputElement)) {
+          return;
+        }
+
+        searchInput.value = '';
+
+        updateSearch();
+
+        searchInput.focus();
+      }
+    );
+  }
+
+  window.addEventListener(
+    'keydown',
+    (event) => {
+      const target = event.target;
+
+      if (
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement
+      ) {
+        if (
+          event.key === 'Escape' &&
+          target === searchInput
+        ) {
+          if (searchInput instanceof HTMLInputElement) {
+            searchInput.value = '';
+            updateSearch();
+          }
+
+          searchInput.blur();
+        }
+
+        return;
+      }
+
+      if (
+        event.key === '/' &&
+        searchInput instanceof HTMLInputElement
+      ) {
+        event.preventDefault();
+        searchInput.focus();
+      }
+    }
+  );
+
+  /*
+   * Important:
+   * Cards are visible even if JS fails.
+   * Animation is only an enhancement.
+   */
+  if (root) {
+    root.classList.add('is-ready');
+
+    requestAnimationFrame(() => {
+      root.classList.add('is-animated');
+    });
+  }
+</script>
+
+<style is:global>
+  .home-page {
+    --black: #090909;
+    --ink: #171717;
+    --muted: #737373;
+    --soft: #a3a3a3;
+    --line: #e4e4e4;
+    --surface: #fafafa;
+    --white: #ffffff;
+
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 58px 28px 72px;
+    color: var(--ink);
+  }
+
+  /* =========================================================
+     HERO
+  ========================================================== */
+
+  .hero-section {
+    margin-bottom: 45px;
+  }
+
+  .hero-topline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+  }
+
+  .hero-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    color: var(--muted);
+
+    font-family:
+      ui-monospace,
+      SFMono-Regular,
+      Menlo,
+      Monaco,
+      Consolas,
+      monospace;
+
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+  }
+
+  .eyebrow-mark {
+    width: 22px;
+    height: 1px;
+    background: var(--black);
+  }
+
+  .hero-version {
+    color: #c0c0c0;
+
+    font-family:
+      ui-monospace,
+      SFMono-Regular,
+      Menlo,
+      Monaco,
+      Consolas,
+      monospace;
+
+    font-size: 7px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+  }
+
+  .hero-content {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+
+    gap: 30px;
+    margin-top: 19px;
+  }
+
+  .hero-copy {
+    min-width: 0;
+  }
+
+  .hero-copy h1 {
+    margin: 0;
+
+    color: var(--black);
+
+    font-size:
+      clamp(
+        4.2rem,
+        12vw,
+        7.7rem
+      );
+
+    line-height: 0.79;
+
+    font-weight: 900;
+    letter-spacing: -0.09em;
+  }
+
+  .hero-copy p {
+    max-width: 440px;
+
+    margin: 22px 0 0;
+
+    color: var(--muted);
+
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  .hero-index {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+
+    padding-bottom: 4px;
+  }
+
+  .index-label {
+    margin-bottom: 3px;
+    color: var(--soft);
+
+    font-family:
+      ui-monospace,
+      SFMono-Regular,
+      Menlo,
+      Monaco,
+      Consolas,
+      monospace;
+
+    font-size: 7px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+  }
+
+  .hero-index strong {
+    color: var(--black);
+
+    font-family:
+      ui-monospace,
+      SFMono-Regular,
+      Menlo,
+      Monaco,
+      Consolas,
+      monospace;
+
+    font-size: 32px;
+    line-height: 0.9;
+    font-weight: 850;
+    letter-spacing: -0.08em;
+  }
+
+  .index-caption {
+    margin-top: 5px;
+    color: #bdbdbd;
+
+    font-family:
+      ui-monospace,
+      SFMono-Regular,
+      Menlo,
+      Monaco,
+      Consolas,
+      monospace;
+
+    font-size: 6px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+  }
+
+  .hero-rule {
+    width: 100%;
+    height: 1px;
+    margin-top: 36px;
+    background: var(--line);
+  }
+
+  /* =========================================================
+     SEARCH
+  ========================================================== */
+
+  .search-section {
+    position: sticky;
+    top: 0;
+    z-index: 25;
+
+    margin: 0 -1px 48px;
+    padding: 9px 1px 11px;
+
+    background:
+      rgba(
+        255,
+        255,
+        255,
+        0.96
+      );
+
+    backdrop-filter: blur(12px);
+  }
+
+  .search-box {
+    display: flex;
+    align-items: center;
+
+    height: 58px;
+
+    border: 1px solid #d7d7d7;
+
+    background: var(--white);
+
+    transition:
+      border-color 160ms ease,
+      box-shadow 160ms ease;
+  }
+
+  .search-box:hover {
+    border-color: #bdbdbd;
+  }
+
+  .search-box:focus-within {
+    border-color: var(--black);
+
+    box-shadow:
+      0 0 0 1px var(--black);
+  }
+
+  .search-icon {
+    display: grid;
+    place-items: center;
+
+    width: 54px;
+    height: 100%;
+  }
+
+  .search-icon svg {
+    width: 17px;
+    height: 17px;
+
+    fill: none;
+    stroke: var(--black);
+    stroke-width: 1.7;
+    stroke-linecap: round;
+  }
+
+  .search-box input {
+    min-width: 0;
+    flex: 1;
+
+    height: 100%;
+
+    border: 0;
+    outline: 0;
+
+    background: transparent;
+    color: var(--black);
+
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .search-box input::placeholder {
+    color: #a4a4a4;
+  }
+
+  .search-box input::-webkit-search-cancel-button {
+    display: none;
+  }
+
+  .search-meta {
+    display: flex;
+    align-items: center;
+
+    gap: 7px;
+    padding-right: 9px;
+  }
+
+  .search-meta kbd {
+    display: grid;
+    place-items: center;
+
+    min-width: 25px;
+    height: 23px;
+
+    padding: 0 6px;
+
+    border: 1px solid var(--line);
+    background: var(--surface);
+
+    color: var(--muted);
+
+    font-family:
+      ui-monospace,
+      SFMono-Regular,
+      Menlo,
+      Monaco,
+      Consolas,
+      monospace;
+
+    font-size: 10px;
+  }
+
+  .clear-search {
+    display: grid;
+    place-items: center;
+
+    width: 30px;
+    height: 30px;
+
+    border: 0;
+    background: transparent;
+
+    color: var(--muted);
+    cursor: pointer;
+  }
+
+  .clear-search:hover {
+    color: var(--black);
+  }
+
+  .clear-search svg {
+    width: 14px;
+    height: 14px;
+
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+  }
+
+  .search-status {
+    display: flex;
+    align-items: center;
+
+    gap: 9px;
+    margin-top: 8px;
+
+    padding-inline: 2px;
+
+    color: var(--soft);
+
+    font-family:
+      ui-monospace,
+      SFMono-Regular,
+      Menlo,
+      Monaco,
+      Consolas,
+      monospace;
+
+    font-size: 7px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+
+  .search-status span:first-child {
+    color: var(--black);
+  }
+
+  .search-status-separator {
+    width: 3px;
+    height: 3px;
+
+    border-radius: 50%;
+    background: #cfcfcf;
+  }
+
+  /* =========================================================
+     LIBRARY
+  ========================================================== */
+
+  .library-section {
+    min-height: 320px;
+  }
+
+  .library-heading {
+    display: flex;
+    align-items: flex-end;
+
+    gap: 15px;
+    margin-bottom: 17px;
+  }
+
+  .library-heading-main {
+    flex: 0 0 auto;
+  }
+
+  .section-kicker {
+    display: block;
+
+    margin-bottom: 7px;
+
+    color: var(--soft);
+
+    font-family:
+      ui-monospace,
+      SFMono-Regular,
+      Menlo,
+      Monaco,
+      Consolas,
+      monospace;
+
+    font-size: 7px;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+  }
+
+  .library-title-row {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+
+  .library-heading h2 {
+    margin: 0;
+
+    color: var(--black);
+
+    font-size: 25px;
+    line-height: 1;
+    font-weight: 850;
+    letter-spacing: -0.045em;
+  }
+
+  .library-live-dot {
+    width: 5px;
+    height: 5px;
+
+    border-radius: 50%;
+    background: var(--black);
+  }
+
+  .library-line {
+    flex: 1;
+    height: 1px;
+    margin-bottom: 5px;
+    background: var(--line);
+  }
+
+  .library-count {
+    margin-bottom: 1px;
+
+    color: var(--soft);
+
+    font-family:
+      ui-monospace,
+      SFMono-Regular,
+      Menlo,
+      Monaco,
+      Consolas,
+      monospace;
+
+    font-size: 9px;
+    font-weight: 800;
+  }
+
+  /* =========================================================
+     CARDS
+  ========================================================== */
+
+  .song-list {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .song-card-wrapper {
+    /*
+     * IMPORTANT:
+     * Always visible.
+     */
+    opacity: 1;
+    transform: none;
+  }
+
+  .song-card-wrapper[hidden] {
+    display: none;
+  }
+
+  .is-animated .song-card-wrapper {
+    animation:
+      homeCardEnter
+      420ms
+      cubic-bezier(
+        0.22,
+        1,
+        0.36,
+        1
+      )
+      both;
+
+    animation-delay:
+      calc(
+        var(--card-index) *
+        35ms
+      );
+  }
+
+  @keyframes homeCardEnter {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* =========================================================
+     EMPTY SEARCH
+  ========================================================== */
+
+  .search-empty {
+    padding: 72px 20px;
+
+    border: 1px dashed #d8d8d8;
+    background: #fcfcfc;
+
+    text-align: center;
+  }
+
+  .search-empty[hidden] {
+    display: none;
+  }
+
+  .empty-search-icon {
+    display: grid;
+    place-items: center;
+
+    width: 42px;
+    height: 42px;
+
+    margin: 0 auto 15px;
+
+    border: 1px solid var(--line);
+    background: white;
+  }
+
+  .empty-search-icon svg {
+    width: 17px;
+    height: 17px;
+
+    fill: none;
+
+    stroke: var(--black);
+
+    stroke-width: 1.5;
+
+    stroke-linecap: round;
+  }
+
+  .empty-label {
+    display: block;
+
+    margin-bottom: 7px;
+
+    color: var(--soft);
+
+    font-family:
+      ui-monospace,
+      SFMono-Regular,
+      Menlo,
+      Monaco,
+      Consolas,
+      monospace;
+
+    font-size: 7px;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+  }
+
+  .search-empty h3,
+  .empty-library h3 {
+    margin: 0;
+
+    color: var(--black);
+
+    font-size: 18px;
+    font-weight: 850;
+    letter-spacing: -0.03em;
+  }
+
+  .search-empty p,
+  .empty-library p {
+    max-width: 340px;
+
+    margin:
+      8px
+      auto
+      20px;
+
+    color: var(--muted);
+
+    font-size: 11px;
+    line-height: 1.7;
+  }
+
+  .search-empty button {
+    height: 36px;
+
+    padding: 0 14px;
+
+    border: 1px solid var(--black);
+
+    background: var(--black);
+    color: white;
+
+    font-size: 9px;
+    font-weight: 750;
+
+    cursor: pointer;
+
+    transition:
+      background 150ms ease,
+      color 150ms ease;
+  }
+
+  .search-empty button:hover {
+    background: white;
+    color: var(--black);
+  }
+
+  /* =========================================================
+     EMPTY LIBRARY
+  ========================================================== */
+
+  .empty-library {
+    padding: 82px 20px;
+
+    border: 1px dashed #d8d8d8;
+    background: #fcfcfc;
+
+    text-align: center;
+  }
+
+  .empty-symbol {
+    display: grid;
+    place-items: center;
+
+    width: 44px;
+    height: 44px;
+
+    margin: 0 auto 16px;
+
+    border: 1px solid var(--line);
+    background: white;
+  }
+
+  .empty-symbol svg {
+    width: 17px;
+    height: 17px;
+
+    fill: none;
+
+    stroke: var(--black);
+
+    stroke-width: 1.5;
+
+    stroke-linejoin: round;
+  }
+
+  .empty-library p {
+    margin-bottom: 0;
+  }
+
+  /* =========================================================
+     FOOTER
+  ========================================================== */
+
+  .home-footer {
+    margin-top: 78px;
+  }
+
+  .footer-rule {
+    width: 100%;
+    height: 1px;
+    background: var(--line);
+  }
+
+  .footer-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 10px;
+    margin-top: 11px;
+
+    color: var(--soft);
+
+    font-family:
+      ui-monospace,
+      SFMono-Regular,
+      Menlo,
+      Monaco,
+      Consolas,
+      monospace;
+
+    font-size: 7px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+  }
+
+  .footer-content span:first-child {
+    color: var(--black);
+  }
+
+  /* =========================================================
+     RESPONSIVE
+  ========================================================== */
+
+  @media (max-width: 700px) {
+    .home-page {
+      padding:
+        34px
+        18px
+        60px;
+    }
+
+    .hero-content {
+      align-items: flex-start;
+    }
+
+    .hero-copy h1 {
+      font-size:
+        clamp(
+          3.8rem,
+          21vw,
+          6rem
+        );
+    }
+
+    .hero-copy p {
+      max-width: 330px;
+      font-size: 13px;
+    }
+
+    .hero-index {
+      padding-top: 8px;
+    }
+  }
+
+  @media (max-width: 520px) {
+    .home-page {
+      padding-inline: 14px;
+    }
+
+    .hero-version {
+      display: none;
+    }
+
+    .hero-content {
+      display: block;
+    }
+
+    .hero-index {
+      align-items: flex-start;
+      margin-top: 24px;
+    }
+
+    .hero-rule {
+      margin-top: 28px;
+    }
+
+    .search-box {
+      height: 54px;
+    }
+
+    .search-icon {
+      width: 46px;
+    }
+
+    .search-meta kbd {
+      display: none;
+    }
+
+    .library-heading {
+      gap: 9px;
+    }
+
+    .library-heading h2 {
+      font-size: 22px;
+    }
+
+    .footer-content {
+      font-size: 6px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .song-card-wrapper,
+    .is-animated .song-card-wrapper {
+      opacity: 1;
+      transform: none;
+      animation: none;
+    }
+
+    *,
+    *::before,
+    *::after {
+      scroll-behavior: auto !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>

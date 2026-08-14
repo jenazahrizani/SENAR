@@ -1,0 +1,56 @@
+---
+export const prerender = true;
+
+import Layout from '../components/Layout.astro';
+import SongDetail from '../components/SongDetail.astro';
+import { adminDb } from '../lib/firebase-admin';
+import { generateSlug } from '../lib/chordParser';
+
+interface Chord {
+  id: string;
+  title: string;
+  artist: string;
+  key?: string;
+  content: string;
+}
+
+const base = import.meta.env.BASE_URL || '';
+
+export async function getStaticPaths() {
+  const snapshot = await adminDb.collection('chords').get();
+  const chords = snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data(),
+  })) as Chord[];
+
+  return chords.map(chord => ({
+    params: { slug: generateSlug(chord.title) },
+    props: { chord },
+  }));
+}
+
+const { chord } = Astro.props as { chord: Chord };
+const { title, artist, key, content } = chord;
+---
+
+<Layout title={`${title} - SENAR`}>
+  <main class="max-w-2xl mx-auto px-4 py-6">
+    <!-- Tombol Kembali dengan base path -->
+    <a 
+      href={`${base}/`} 
+      class="inline-flex items-center gap-2 text-[#52525b] hover:text-[#0a0a0a] transition-colors mb-6 group"
+    >
+      <svg class="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+      </svg>
+      <span>Kembali</span>
+    </a>
+
+    <SongDetail 
+      title={title}
+      artist={artist}
+      key={key}
+      content={content}
+    />
+  </main>
+</Layout>
