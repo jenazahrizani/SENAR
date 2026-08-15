@@ -1,5 +1,5 @@
 ---
-export const prerender = true;
+export const prerender = false;
 
 import Layout from '../components/Layout.astro';
 import SongDetail from '../components/SongDetail.astro';
@@ -15,42 +15,188 @@ interface Chord {
 }
 
 const base = import.meta.env.BASE_URL || '';
+const { slug } = Astro.params;
 
-export async function getStaticPaths() {
-  const snapshot = await adminDb.collection('chords').get();
-  const chords = snapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as Chord[];
+let chord: Chord | null = null;
 
-  return chords.map(chord => ({
-    params: { slug: generateSlug(chord.title) },
-    props: { chord },
-  }));
+if (slug) {
+  const snapshot = await adminDb
+    .collection('chords')
+    .get();
+
+  for (const doc of snapshot.docs) {
+    const data = doc.data();
+
+    const generatedSlug =
+      generateSlug(
+        String(data.title || '')
+      );
+
+    if (generatedSlug === slug) {
+      chord = {
+        id: doc.id,
+        ...data,
+      } as Chord;
+
+      break;
+    }
+  }
 }
 
-const { chord } = Astro.props as { chord: Chord };
-const { title, artist, key, content } = chord;
+if (!chord) {
+  return Astro.redirect(`${base}/`);
+}
+
+const {
+  title,
+  artist,
+  key,
+  content,
+} = chord;
 ---
 
-<Layout title={`${title} - SENAR`}>
-  <main class="max-w-2xl mx-auto px-4 py-6">
-    <!-- Tombol Kembali dengan base path -->
-    <a 
-      href={`${base}/`} 
-      class="inline-flex items-center gap-2 text-[#52525b] hover:text-[#0a0a0a] transition-colors mb-6 group"
-    >
-      <svg class="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-      </svg>
-      <span>Kembali</span>
-    </a>
+<Layout title={`${title} — SENAR`}>
+  <main class="song-page">
 
-    <SongDetail 
+    <!-- =====================================================
+         TOP NAV
+    ====================================================== -->
+
+    <header class="song-page-header">
+      <a
+        href={`${base}/`}
+        class="back-link"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <path d="M19 12H5"></path>
+          <path d="m11 18-6-6 6-6"></path>
+        </svg>
+
+        <span>Semua lagu</span>
+      </a>
+
+      <span class="page-label">
+        SENAR / CHORD
+      </span>
+    </header>
+
+    <!-- =====================================================
+         SONG
+    ====================================================== -->
+
+    <SongDetail
       title={title}
       artist={artist}
       key={key}
       content={content}
     />
+
   </main>
 </Layout>
+
+<style>
+  .song-page {
+    width: 100%;
+  }
+
+  .song-page-header {
+    width: 100%;
+    max-width: 900px;
+
+    margin:
+      0
+      auto;
+
+    padding:
+      24px
+      28px
+      0;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 20px;
+  }
+
+  .back-link {
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 7px;
+
+    color: #737373;
+
+    font-size: 10px;
+
+    font-weight: 650;
+
+    text-decoration: none;
+
+    transition:
+      color 150ms ease,
+      transform 150ms ease;
+  }
+
+  .back-link:hover {
+    color: #090909;
+
+    transform:
+      translateX(-2px);
+  }
+
+  .back-link svg {
+    width: 13px;
+    height: 13px;
+
+    fill: none;
+
+    stroke: currentColor;
+
+    stroke-width: 1.7;
+
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .page-label {
+    color: #b1b1b1;
+
+    font-family:
+      ui-monospace,
+      SFMono-Regular,
+      Menlo,
+      Monaco,
+      Consolas,
+      monospace;
+
+    font-size: 7px;
+
+    font-weight: 800;
+
+    letter-spacing:
+      0.14em;
+  }
+
+  @media (max-width: 600px) {
+    .song-page-header {
+      padding-inline:
+        18px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .song-page-header {
+      padding-inline:
+        14px;
+    }
+
+    .page-label {
+      display: none;
+    }
+  }
+</style>
