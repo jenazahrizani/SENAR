@@ -1,0 +1,1634 @@
+---
+/*
+ * SENAR — Chord-only prototype
+ *
+ * Goal:
+ * - No dashboard
+ * - No search
+ * - No preview workspace
+ * - No song metadata
+ * - No decorative UI competing with the chord
+ * - Compact chord gallery
+ * - One-click single-chord modal
+ * - Standard high-G GCEA notation
+ * - SVG diagram keeps all four strings and four frets visible
+ * - Open/muted markers live above the nut
+ * - Finger numbers are rendered inside the dots
+ * - Barre shapes are rendered as a continuous finger bar
+ *
+ * The chord shapes below are the common beginner/reference voicings
+ * for standard high-G G-C-E-A ukulele tuning.
+ */
+
+type Barre = {
+  fret: number;
+  from: number;
+  to: number;
+  finger: number;
+};
+
+type Chord = {
+  name: string;
+  family: 'Major' | 'Minor' | '7th';
+  frets: number[];
+  fingers: number[];
+  barres?: Barre[];
+};
+
+const chords: Chord[] = [
+  // ==========================================================
+  // MAJOR
+  // ==========================================================
+  {
+    name: 'C',
+    family: 'Major',
+    frets: [0, 0, 0, 3],
+    fingers: [0, 0, 0, 3],
+  },
+  {
+    name: 'D',
+    family: 'Major',
+    frets: [2, 2, 2, 0],
+    fingers: [1, 2, 3, 0],
+  },
+  {
+    name: 'E',
+    family: 'Major',
+    frets: [1, 4, 0, 2],
+    fingers: [1, 4, 0, 2],
+  },
+  {
+    name: 'F',
+    family: 'Major',
+    frets: [2, 0, 1, 0],
+    fingers: [2, 0, 1, 0],
+  },
+  {
+    name: 'G',
+    family: 'Major',
+    frets: [0, 2, 3, 2],
+    fingers: [0, 1, 3, 2],
+  },
+  {
+    name: 'A',
+    family: 'Major',
+    frets: [2, 1, 0, 0],
+    fingers: [2, 1, 0, 0],
+  },
+  {
+    name: 'B',
+    family: 'Major',
+    frets: [4, 3, 2, 2],
+    fingers: [3, 2, 1, 1],
+    barres: [
+      {
+        fret: 2,
+        from: 2,
+        to: 3,
+        finger: 1,
+      },
+    ],
+  },
+
+  // ==========================================================
+  // MINOR
+  // ==========================================================
+  {
+    name: 'Cm',
+    family: 'Minor',
+    frets: [0, 3, 3, 3],
+    fingers: [0, 1, 1, 1],
+    barres: [
+      {
+        fret: 3,
+        from: 1,
+        to: 3,
+        finger: 1,
+      },
+    ],
+  },
+  {
+    name: 'Dm',
+    family: 'Minor',
+    frets: [2, 2, 1, 0],
+    fingers: [2, 2, 1, 0],
+    barres: [
+      {
+        fret: 2,
+        from: 0,
+        to: 1,
+        finger: 2,
+      },
+    ],
+  },
+  {
+    name: 'Em',
+    family: 'Minor',
+    frets: [0, 4, 3, 2],
+    fingers: [0, 3, 2, 1],
+  },
+  {
+    name: 'Fm',
+    family: 'Minor',
+    frets: [1, 0, 1, 3],
+    fingers: [1, 0, 2, 3],
+  },
+  {
+    name: 'Gm',
+    family: 'Minor',
+    frets: [0, 2, 3, 1],
+    fingers: [0, 2, 3, 1],
+  },
+  {
+    name: 'Am',
+    family: 'Minor',
+    frets: [2, 0, 0, 0],
+    fingers: [2, 0, 0, 0],
+  },
+  {
+    name: 'Bm',
+    family: 'Minor',
+    frets: [4, 2, 2, 2],
+    fingers: [3, 1, 1, 1],
+    barres: [
+      {
+        fret: 2,
+        from: 1,
+        to: 3,
+        finger: 1,
+      },
+    ],
+  },
+
+  // ==========================================================
+  // DOMINANT 7TH
+  // ==========================================================
+  {
+    name: 'C7',
+    family: '7th',
+    frets: [0, 0, 0, 1],
+    fingers: [0, 0, 0, 1],
+  },
+  {
+    name: 'D7',
+    family: '7th',
+    frets: [2, 0, 2, 0],
+    fingers: [1, 0, 2, 0],
+  },
+  {
+    name: 'E7',
+    family: '7th',
+    frets: [1, 2, 0, 2],
+    fingers: [1, 2, 0, 3],
+  },
+  {
+    name: 'F7',
+    family: '7th',
+    frets: [2, 3, 1, 0],
+    fingers: [2, 3, 1, 0],
+  },
+  {
+    name: 'G7',
+    family: '7th',
+    frets: [0, 2, 1, 2],
+    fingers: [0, 2, 1, 3],
+  },
+  {
+    name: 'A7',
+    family: '7th',
+    frets: [0, 1, 0, 0],
+    fingers: [0, 1, 0, 0],
+  },
+  {
+    name: 'B7',
+    family: '7th',
+    frets: [4, 3, 2, 0],
+    fingers: [3, 2, 1, 0],
+  },
+];
+
+const families = ['Major', 'Minor', '7th'] as const;
+
+function noteName(
+  stringIndex: number,
+  fret: number,
+) {
+  if (fret < 0) return '—';
+
+  // High-G standard tuning: G C E A.
+  const tuningPitch = [7, 0, 4, 9];
+
+  const chromatic = [
+    'C',
+    'C♯',
+    'D',
+    'D♯',
+    'E',
+    'F',
+    'F♯',
+    'G',
+    'G♯',
+    'A',
+    'A♯',
+    'B',
+  ];
+
+  return chromatic[
+    (tuningPitch[stringIndex] + fret) % 12
+  ];
+}
+
+function diagramSvg(
+  chord: Chord,
+  size: 'small' | 'large',
+) {
+  const large = size === 'large';
+
+  /*
+   * These proportions intentionally follow a compact,
+   * traditional ukulele chart instead of a UI-fretboard look.
+   */
+  const width = large ? 260 : 116;
+  const height = large ? 316 : 142;
+
+  const stringX = large
+    ? [40, 100, 160, 220]
+    : [20, 46, 72, 98];
+
+  const top = large ? 72 : 31;
+  const fretGap = large ? 47 : 20;
+  const fretCount = 4;
+
+  const bottom =
+    top + fretGap * fretCount;
+
+  const openMarkerY =
+    top - (large ? 24 : 15);
+
+  const nutStroke =
+    large ? 5 : 2.7;
+
+  const stringBase =
+    large ? 1.65 : 1.05;
+
+  const fingerRadius =
+    large ? 14 : 6.4;
+
+  const stringStroke = [
+    large ? 2.15 : 1.2,
+    large ? 1.9 : 1.1,
+    large ? 1.65 : 1.0,
+    large ? 1.4 : 0.95,
+  ];
+
+  function fretCenter(fret: number) {
+    return (
+      top +
+      (fret - 0.5) * fretGap
+    );
+  }
+
+  function barreContainsString(
+    barre: Barre,
+    stringIndex: number,
+  ) {
+    return (
+      stringIndex >= barre.from &&
+      stringIndex <= barre.to
+    );
+  }
+
+  const strings = stringX
+    .map(
+      (x, index) => `
+        <line
+          x1="${x}"
+          y1="${top}"
+          x2="${x}"
+          y2="${bottom}"
+          class="chart-string"
+          style="stroke-width:${stringStroke[index]}px"
+        />
+      `,
+    )
+    .join('');
+
+  const frets = Array.from(
+    { length: fretCount + 1 },
+    (_, index) => {
+      const y =
+        top + index * fretGap;
+
+      if (index === 0) {
+        return `
+          <line
+            x1="${stringX[0]}"
+            y1="${y}"
+            x2="${stringX[3]}"
+            y2="${y}"
+            class="chart-nut"
+          />
+        `;
+      }
+
+      return `
+        <line
+          x1="${stringX[0]}"
+          y1="${y}"
+          x2="${stringX[3]}"
+          y2="${y}"
+          class="chart-fret"
+        />
+      `;
+    },
+  ).join('');
+
+  const markers = chord.frets
+    .map((fret, index) => {
+      const x = stringX[index];
+
+      if (fret === 0) {
+        return `
+          <circle
+            cx="${x}"
+            cy="${openMarkerY}"
+            r="${large ? 8 : 5.5}"
+            class="open-circle"
+          />
+        `;
+      }
+
+      if (fret < 0) {
+        const s = large ? 5 : 3.5;
+
+        return `
+          <line
+            x1="${x - s}"
+            y1="${openMarkerY - s}"
+            x2="${x + s}"
+            y2="${openMarkerY + s}"
+            class="muted-cross"
+          />
+          <line
+            x1="${x + s}"
+            y1="${openMarkerY - s}"
+            x2="${x - s}"
+            y2="${openMarkerY + s}"
+            class="muted-cross"
+          />
+        `;
+      }
+
+      return '';
+    })
+    .join('');
+
+  const barres = (chord.barres ?? [])
+    .map((barre) => {
+      const y = fretCenter(barre.fret);
+
+      const x1 =
+        stringX[barre.from] -
+        fingerRadius;
+
+      const x2 =
+        stringX[barre.to] +
+        fingerRadius;
+
+      return `
+        <rect
+          x="${x1}"
+          y="${y - fingerRadius}"
+          width="${x2 - x1}"
+          height="${fingerRadius * 2}"
+          rx="${fingerRadius}"
+          class="finger-dot"
+        />
+        <text
+          x="${(x1 + x2) / 2}"
+          y="${y + (large ? 4.5 : 2.4)}"
+          text-anchor="middle"
+          class="finger-number"
+        >${barre.finger}</text>
+      `;
+    })
+    .join('');
+
+  const individualFingers = chord.frets
+    .map((fret, index) => {
+      if (fret <= 0) return '';
+
+      const finger =
+        chord.fingers[index] ?? 0;
+
+      const inBarre =
+        (chord.barres ?? []).some(
+          (barre) =>
+            barre.fret === fret &&
+            barre.finger === finger &&
+            barreContainsString(
+              barre,
+              index,
+            ),
+        );
+
+      if (inBarre) return '';
+
+      const x = stringX[index];
+      const y = fretCenter(fret);
+
+      return `
+        <circle
+          cx="${x}"
+          cy="${y}"
+          r="${fingerRadius}"
+          class="finger-dot"
+        />
+        ${
+          finger
+            ? `
+              <text
+                x="${x}"
+                y="${y + (large ? 4.5 : 2.4)}"
+                text-anchor="middle"
+                class="finger-number"
+              >${finger}</text>
+            `
+            : ''
+        }
+      `;
+    })
+    .join('');
+
+  const notes = chord.frets
+    .map(
+      (fret, index) => `
+        <text
+          x="${stringX[index]}"
+          y="${bottom + (large ? 26 : 17)}"
+          text-anchor="middle"
+          class="chart-note"
+        >${noteName(index, fret)}</text>
+      `,
+    )
+    .join('');
+
+  const stringLabels = large
+    ? ['G', 'C', 'E', 'A']
+        .map(
+          (label, index) => `
+            <text
+              x="${stringX[index]}"
+              y="${top + (large ? 3 : 2)}"
+              text-anchor="middle"
+              class="string-label"
+              opacity="0"
+            >${label}</text>
+          `,
+        )
+        .join('')
+    : '';
+
+  return `
+    <svg
+      class="chord-svg ${large ? 'is-large' : 'is-small'}"
+      viewBox="0 0 ${width} ${height}"
+      role="img"
+      aria-label="${chord.name} ukulele chord diagram"
+    >
+      ${stringLabels}
+      ${markers}
+      ${strings}
+      ${frets}
+      ${barres}
+      ${individualFingers}
+      ${notes}
+    </svg>
+  `;
+}
+
+const escapeAttr = (value: string) =>
+  value
+    .replaceAll('&', '&amp;')
+    .replaceAll('"', '&quot;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;');
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1"
+    />
+    <title>SENAR — Chords</title>
+
+    <style>
+      :root {
+        --page: #f5f5f3;
+        --paper: #ffffff;
+        --ink: #191b19;
+        --muted: #737872;
+        --line: #aeb3ad;
+        --line-light: #d9dcd8;
+        --dot: #353a35;
+        --green: #17834e;
+        --green-soft: #e7f2eb;
+        --modal-shadow:
+          0 30px 90px rgba(10, 14, 11, 0.22),
+          0 6px 24px rgba(10, 14, 11, 0.09);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+      }
+
+      html {
+        background: var(--page);
+      }
+
+      body {
+        min-height: 100vh;
+        background:
+          linear-gradient(
+            180deg,
+            #ffffff 0,
+            var(--page) 210px
+          );
+        color: var(--ink);
+        font-family:
+          Inter,
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      button {
+        font: inherit;
+      }
+
+      /* =====================================================
+         PAGE — INTENTIONALLY MINIMAL
+      ===================================================== */
+
+      .chord-page {
+        width: min(1120px, calc(100% - 24px));
+        margin: 0 auto;
+        padding: 26px 0 52px;
+      }
+
+      .chord-section {
+        margin: 0;
+      }
+
+      .family + .family {
+        margin-top: 24px;
+      }
+
+      .family-heading {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin: 0 0 9px;
+        min-height: 14px;
+      }
+
+      .family-heading::before {
+        content: "";
+        width: 3px;
+        height: 11px;
+        border-radius: 2px;
+        background: var(--green);
+      }
+
+      .family-name {
+        margin: 0;
+        color: #515650;
+        font-size: 10px;
+        line-height: 1;
+        font-weight: 850;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+      }
+
+      .family-line {
+        flex: 1;
+        height: 1px;
+        background: var(--line-light);
+      }
+
+      .chord-grid {
+        display: grid;
+        grid-template-columns:
+          repeat(7, minmax(0, 1fr));
+        gap: 5px;
+      }
+
+      /* =====================================================
+         CHORD BUTTON
+      ===================================================== */
+
+      .chord-item {
+        min-width: 0;
+      }
+
+      .chord-button {
+        width: 100%;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 8px 3px 6px;
+        border: 1px solid transparent;
+        border-radius: 9px;
+        background: transparent;
+        color: var(--ink);
+        cursor: pointer;
+        appearance: none;
+        transition:
+          background-color 110ms ease,
+          border-color 110ms ease,
+          box-shadow 110ms ease,
+          transform 110ms ease;
+      }
+
+      .chord-button:hover {
+        background: rgba(255, 255, 255, 0.82);
+        border-color: var(--line-light);
+        transform: translateY(-1px);
+      }
+
+      .chord-button:focus-visible {
+        outline: none;
+        border-color: rgba(23, 131, 78, 0.48);
+        box-shadow:
+          0 0 0 3px rgba(23, 131, 78, 0.1);
+      }
+
+      .chord-name {
+        width: 100%;
+        min-height: 19px;
+        margin-bottom: 0;
+        color: var(--ink);
+        font-size: 14px;
+        line-height: 19px;
+        font-weight: 820;
+        letter-spacing: -0.035em;
+        text-align: center;
+      }
+
+      .chord-diagram {
+        width: 102px;
+        max-width: 100%;
+        margin: 0 auto;
+      }
+
+      /* =====================================================
+         CHORD SVG — SMALL
+      ===================================================== */
+
+      .chord-svg {
+        display: block;
+        width: 100%;
+        height: auto;
+        overflow: visible;
+      }
+
+      .chart-string {
+        stroke: #5f645f;
+        stroke-linecap: round;
+        shape-rendering: geometricPrecision;
+        fill: none;
+      }
+
+      .chart-fret {
+        stroke: #adb2ad;
+        stroke-width: 1.05;
+        stroke-linecap: square;
+        shape-rendering: crispEdges;
+        fill: none;
+      }
+
+      .chart-nut {
+        stroke: #393d39;
+        stroke-width: 2.7;
+        stroke-linecap: square;
+        shape-rendering: geometricPrecision;
+        fill: none;
+      }
+
+      .open-circle {
+        fill: #ffffff;
+        stroke: #555a55;
+        stroke-width: 1.25;
+      }
+
+      .muted-cross {
+        stroke: #555a55;
+        stroke-width: 1.2;
+        stroke-linecap: round;
+      }
+
+      .finger-dot {
+        fill: var(--dot);
+      }
+
+      .finger-number {
+        fill: #ffffff;
+        font-family:
+          Arial,
+          Helvetica,
+          sans-serif;
+        font-size: 5.8px;
+        font-weight: 700;
+        pointer-events: none;
+      }
+
+      .chart-note {
+        fill: #747a74;
+        font-family:
+          Arial,
+          Helvetica,
+          sans-serif;
+        font-size: 7px;
+        font-weight: 400;
+      }
+
+      .string-label {
+        fill: #747a74;
+        font-size: 10px;
+        font-weight: 700;
+      }
+
+      /* =====================================================
+         SINGLE CHORD MODAL
+      ===================================================== */
+
+      .chord-dialog {
+        width: min(410px, calc(100vw - 26px));
+        padding: 0;
+        border: 0;
+        border-radius: 18px;
+        background: #ffffff;
+        color: var(--ink);
+        box-shadow: var(--modal-shadow);
+        overflow: hidden;
+      }
+
+      .chord-dialog::backdrop {
+        background:
+          rgba(17, 20, 17, 0.43);
+        backdrop-filter: blur(4px);
+      }
+
+      .dialog-inner {
+        padding: 17px 18px 19px;
+      }
+
+      .dialog-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 15px;
+        margin-bottom: 2px;
+      }
+
+      .dialog-name {
+        margin: 0;
+        font-size: 32px;
+        line-height: 1;
+        font-weight: 840;
+        letter-spacing: -0.055em;
+      }
+
+      .dialog-close {
+        width: 30px;
+        height: 30px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+        border: 1px solid #d9ddd9;
+        border-radius: 50%;
+        background: #ffffff;
+        color: #6e746e;
+        font-size: 19px;
+        line-height: 1;
+        cursor: pointer;
+      }
+
+      .dialog-close:hover {
+        background: #f5f6f4;
+        color: var(--ink);
+      }
+
+      .dialog-close:focus-visible {
+        outline: none;
+        border-color: rgba(23, 131, 78, 0.5);
+        box-shadow:
+          0 0 0 3px rgba(23, 131, 78, 0.1);
+      }
+
+      .dialog-caption {
+        margin: 7px 0 0;
+        color: var(--muted);
+        font-family:
+          "SFMono-Regular",
+          Consolas,
+          "Liberation Mono",
+          monospace;
+        font-size: 10px;
+        letter-spacing: 0.04em;
+      }
+
+      .dialog-diagram {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 7px 0 1px;
+      }
+
+      .dialog-diagram .chord-svg {
+        width: 285px;
+        max-width: 100%;
+      }
+
+      .dialog-guide {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+        margin-top: 4px;
+        padding-top: 10px;
+        border-top: 1px solid #eceeeb;
+      }
+
+      .dialog-string {
+        text-align: center;
+      }
+
+      .dialog-string-name {
+        display: block;
+        color: #444944;
+        font-size: 9px;
+        line-height: 1;
+        font-weight: 800;
+      }
+
+      .dialog-string-note {
+        display: block;
+        margin-top: 3px;
+        color: var(--muted);
+        font-size: 8px;
+        line-height: 1;
+      }
+
+      /* =====================================================
+         MOBILE
+      ===================================================== */
+
+      @media (max-width: 920px) {
+        .chord-grid {
+          grid-template-columns:
+            repeat(7, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 700px) {
+        .chord-page {
+          width: calc(100% - 14px);
+          padding-top: 17px;
+        }
+
+        .family + .family {
+          margin-top: 20px;
+        }
+
+        .chord-grid {
+          grid-template-columns:
+            repeat(4, minmax(0, 1fr));
+          gap: 3px;
+        }
+
+        .chord-button {
+          padding:
+            7px 2px 5px;
+        }
+
+        .chord-diagram {
+          width: 98px;
+        }
+      }
+
+      @media (max-width: 390px) {
+        .chord-grid {
+          grid-template-columns:
+            repeat(3, minmax(0, 1fr));
+        }
+
+        .chord-diagram {
+          width: 100px;
+        }
+      }
+
+      /* =====================================================
+         PRINT — CHORDS ONLY
+      ===================================================== */
+
+      @media print {
+        body {
+          background: #ffffff;
+        }
+
+        .chord-page {
+          width: 100%;
+          padding: 0;
+        }
+
+        .chord-button {
+          break-inside: avoid;
+        }
+
+        .chord-dialog {
+          display: none !important;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          transition: none !important;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <main class="chord-page">
+      <section class="chord-section" aria-label="Ukulele chords">
+        {
+          families.map((family) => {
+            const items = chords.filter(
+              (chord) => chord.family === family,
+            );
+
+            return (
+              <section class="family">
+                <div class="family-heading">
+                  <h2 class="family-name">
+                    {family}
+                  </h2>
+                  <span class="family-line"></span>
+                </div>
+
+                <div class="chord-grid">
+                  {
+                    items.map((chord) => (
+                      <article
+                        class="chord-item"
+                        data-chord-item
+                      >
+                        <button
+                          type="button"
+                          class="chord-button"
+                          data-open-chord={chord.name}
+                          aria-label={`Open ${chord.name} chord`}
+                        >
+                          <span class="chord-name">
+                            {chord.name}
+                          </span>
+
+                          <span class="chord-diagram">
+                            <Fragment
+                              set:html={diagramSvg(
+                                chord,
+                                'small',
+                              )}
+                            />
+                          </span>
+                        </button>
+                      </article>
+                    ))
+                  }
+                </div>
+              </section>
+            );
+          })
+        }
+      </section>
+    </main>
+
+    <!-- ======================================================
+         SINGLE CHORD POPUP
+    ======================================================= -->
+
+    <dialog
+      id="chordDialog"
+      class="chord-dialog"
+      aria-labelledby="dialogChordName"
+    >
+      <div class="dialog-inner">
+        <div class="dialog-top">
+          <div>
+            <h2
+              id="dialogChordName"
+              class="dialog-name"
+            >
+              C
+            </h2>
+
+            <p
+              id="dialogCaption"
+              class="dialog-caption"
+            >
+              G C E A · 0003
+            </p>
+          </div>
+
+          <form method="dialog">
+            <button
+              type="submit"
+              class="dialog-close"
+              aria-label="Close chord"
+            >
+              ×
+            </button>
+          </form>
+        </div>
+
+        <div
+          id="dialogDiagram"
+          class="dialog-diagram"
+        ></div>
+
+        <div
+          id="dialogGuide"
+          class="dialog-guide"
+          aria-label="Strings and notes"
+        ></div>
+      </div>
+    </dialog>
+
+    <script>
+      type ClientChord = {
+        name: string;
+        family: string;
+        frets: number[];
+        fingers: number[];
+        barres: Array<{
+          fret: number;
+          from: number;
+          to: number;
+          finger: number;
+        }>;
+      };
+
+      const chordData: ClientChord[] = [
+        {
+          name: 'C',
+          family: 'Major',
+          frets: [0, 0, 0, 3],
+          fingers: [0, 0, 0, 3],
+          barres: [],
+        },
+        {
+          name: 'D',
+          family: 'Major',
+          frets: [2, 2, 2, 0],
+          fingers: [1, 2, 3, 0],
+          barres: [],
+        },
+        {
+          name: 'E',
+          family: 'Major',
+          frets: [1, 4, 0, 2],
+          fingers: [1, 4, 0, 2],
+          barres: [],
+        },
+        {
+          name: 'F',
+          family: 'Major',
+          frets: [2, 0, 1, 0],
+          fingers: [2, 0, 1, 0],
+          barres: [],
+        },
+        {
+          name: 'G',
+          family: 'Major',
+          frets: [0, 2, 3, 2],
+          fingers: [0, 1, 3, 2],
+          barres: [],
+        },
+        {
+          name: 'A',
+          family: 'Major',
+          frets: [2, 1, 0, 0],
+          fingers: [2, 1, 0, 0],
+          barres: [],
+        },
+        {
+          name: 'B',
+          family: 'Major',
+          frets: [4, 3, 2, 2],
+          fingers: [3, 2, 1, 1],
+          barres: [
+            {
+              fret: 2,
+              from: 2,
+              to: 3,
+              finger: 1,
+            },
+          ],
+        },
+        {
+          name: 'Cm',
+          family: 'Minor',
+          frets: [0, 3, 3, 3],
+          fingers: [0, 1, 1, 1],
+          barres: [
+            {
+              fret: 3,
+              from: 1,
+              to: 3,
+              finger: 1,
+            },
+          ],
+        },
+        {
+          name: 'Dm',
+          family: 'Minor',
+          frets: [2, 2, 1, 0],
+          fingers: [2, 2, 1, 0],
+          barres: [
+            {
+              fret: 2,
+              from: 0,
+              to: 1,
+              finger: 2,
+            },
+          ],
+        },
+        {
+          name: 'Em',
+          family: 'Minor',
+          frets: [0, 4, 3, 2],
+          fingers: [0, 3, 2, 1],
+          barres: [],
+        },
+        {
+          name: 'Fm',
+          family: 'Minor',
+          frets: [1, 0, 1, 3],
+          fingers: [1, 0, 2, 3],
+          barres: [],
+        },
+        {
+          name: 'Gm',
+          family: 'Minor',
+          frets: [0, 2, 3, 1],
+          fingers: [0, 2, 3, 1],
+          barres: [],
+        },
+        {
+          name: 'Am',
+          family: 'Minor',
+          frets: [2, 0, 0, 0],
+          fingers: [2, 0, 0, 0],
+          barres: [],
+        },
+        {
+          name: 'Bm',
+          family: 'Minor',
+          frets: [4, 2, 2, 2],
+          fingers: [3, 1, 1, 1],
+          barres: [
+            {
+              fret: 2,
+              from: 1,
+              to: 3,
+              finger: 1,
+            },
+          ],
+        },
+        {
+          name: 'C7',
+          family: '7th',
+          frets: [0, 0, 0, 1],
+          fingers: [0, 0, 0, 1],
+          barres: [],
+        },
+        {
+          name: 'D7',
+          family: '7th',
+          frets: [2, 0, 2, 0],
+          fingers: [1, 0, 2, 0],
+          barres: [],
+        },
+        {
+          name: 'E7',
+          family: '7th',
+          frets: [1, 2, 0, 2],
+          fingers: [1, 2, 0, 3],
+          barres: [],
+        },
+        {
+          name: 'F7',
+          family: '7th',
+          frets: [2, 3, 1, 0],
+          fingers: [2, 3, 1, 0],
+          barres: [],
+        },
+        {
+          name: 'G7',
+          family: '7th',
+          frets: [0, 2, 1, 2],
+          fingers: [0, 2, 1, 3],
+          barres: [],
+        },
+        {
+          name: 'A7',
+          family: '7th',
+          frets: [0, 1, 0, 0],
+          fingers: [0, 1, 0, 0],
+          barres: [],
+        },
+        {
+          name: 'B7',
+          family: '7th',
+          frets: [4, 3, 2, 0],
+          fingers: [3, 2, 1, 0],
+          barres: [],
+        },
+      ];
+
+      const tuning = ['G', 'C', 'E', 'A'];
+
+      const chromatic = [
+        'C',
+        'C♯',
+        'D',
+        'D♯',
+        'E',
+        'F',
+        'F♯',
+        'G',
+        'G♯',
+        'A',
+        'A♯',
+        'B',
+      ];
+
+      const tuningPitch = [7, 0, 4, 9];
+
+      function clientNoteName(
+        stringIndex: number,
+        fret: number,
+      ) {
+        if (fret < 0) return '—';
+
+        return chromatic[
+          (tuningPitch[stringIndex] + fret) % 12
+        ];
+      }
+
+      function clientDiagram(
+        chord: ClientChord,
+      ) {
+        const width = 260;
+        const height = 316;
+
+        const stringX = [40, 100, 160, 220];
+        const top = 72;
+        const gap = 47;
+        const bottom = top + gap * 4;
+        const markerY = top - 24;
+        const radius = 14;
+
+        const fretCenter = (fret: number) =>
+          top + (fret - 0.5) * gap;
+
+        const stringWidths = [
+          2.15,
+          1.9,
+          1.65,
+          1.4,
+        ];
+
+        const markerSvg = chord.frets
+          .map((fret, index) => {
+            const x = stringX[index];
+
+            if (fret === 0) {
+              return `
+                <circle
+                  cx="${x}"
+                  cy="${markerY}"
+                  r="8"
+                  fill="#ffffff"
+                  stroke="#555a55"
+                  stroke-width="1.35"
+                />
+              `;
+            }
+
+            if (fret < 0) {
+              return `
+                <line
+                  x1="${x - 5}"
+                  y1="${markerY - 5}"
+                  x2="${x + 5}"
+                  y2="${markerY + 5}"
+                  stroke="#555a55"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                />
+                <line
+                  x1="${x + 5}"
+                  y1="${markerY - 5}"
+                  x2="${x - 5}"
+                  y2="${markerY + 5}"
+                  stroke="#555a55"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                />
+              `;
+            }
+
+            return '';
+          })
+          .join('');
+
+        const stringsSvg = stringX
+          .map(
+            (x, index) => `
+              <line
+                x1="${x}"
+                y1="${top}"
+                x2="${x}"
+                y2="${bottom}"
+                stroke="#5f645f"
+                stroke-width="${stringWidths[index]}"
+                stroke-linecap="round"
+              />
+            `,
+          )
+          .join('');
+
+        const fretSvg = Array.from(
+          { length: 5 },
+          (_, index) => {
+            const y = top + index * gap;
+
+            return `
+              <line
+                x1="${stringX[0]}"
+                y1="${y}"
+                x2="${stringX[3]}"
+                y2="${y}"
+                stroke="${index === 0 ? '#393d39' : '#adb2ad'}"
+                stroke-width="${index === 0 ? 5 : 1.55}"
+                stroke-linecap="square"
+              />
+            `;
+          },
+        ).join('');
+
+        const coveredByBarre = (
+          index: number,
+          fret: number,
+          finger: number,
+        ) =>
+          chord.barres.some(
+            (barre) =>
+              barre.fret === fret &&
+              barre.finger === finger &&
+              index >= barre.from &&
+              index <= barre.to,
+          );
+
+        const barresSvg = chord.barres
+          .map((barre) => {
+            const y = fretCenter(barre.fret);
+            const x1 =
+              stringX[barre.from] - radius;
+            const x2 =
+              stringX[barre.to] + radius;
+
+            return `
+              <rect
+                x="${x1}"
+                y="${y - radius}"
+                width="${x2 - x1}"
+                height="${radius * 2}"
+                rx="${radius}"
+                fill="#353a35"
+              />
+              <text
+                x="${(x1 + x2) / 2}"
+                y="${y + 4.5}"
+                text-anchor="middle"
+                fill="#ffffff"
+                font-family="Arial, Helvetica, sans-serif"
+                font-size="11"
+                font-weight="700"
+              >${barre.finger}</text>
+            `;
+          })
+          .join('');
+
+        const fingersSvg = chord.frets
+          .map((fret, index) => {
+            if (fret <= 0) return '';
+
+            const finger =
+              chord.fingers[index];
+
+            if (
+              finger &&
+              coveredByBarre(
+                index,
+                fret,
+                finger,
+              )
+            ) {
+              return '';
+            }
+
+            const x = stringX[index];
+            const y = fretCenter(fret);
+
+            return `
+              <circle
+                cx="${x}"
+                cy="${y}"
+                r="${radius}"
+                fill="#353a35"
+              />
+              <text
+                x="${x}"
+                y="${y + 4.5}"
+                text-anchor="middle"
+                fill="#ffffff"
+                font-family="Arial, Helvetica, sans-serif"
+                font-size="11"
+                font-weight="700"
+              >${finger || ''}</text>
+            `;
+          })
+          .join('');
+
+        const notesSvg = chord.frets
+          .map(
+            (fret, index) => `
+              <text
+                x="${stringX[index]}"
+                y="${bottom + 26}"
+                text-anchor="middle"
+                fill="#747a74"
+                font-family="Arial, Helvetica, sans-serif"
+                font-size="9"
+              >${clientNoteName(index, fret)}</text>
+            `,
+          )
+          .join('');
+
+        return `
+          <svg
+            class="chord-svg is-large"
+            viewBox="0 0 ${width} ${height}"
+            role="img"
+            aria-label="${chord.name} ukulele chord diagram"
+          >
+            ${markerSvg}
+            ${stringsSvg}
+            ${fretSvg}
+            ${barresSvg}
+            ${fingersSvg}
+            ${notesSvg}
+          </svg>
+        `;
+      }
+
+      const dialog =
+        document.querySelector<HTMLDialogElement>(
+          '#chordDialog',
+        );
+
+      const dialogName =
+        document.querySelector<HTMLElement>(
+          '#dialogChordName',
+        );
+
+      const dialogCaption =
+        document.querySelector<HTMLElement>(
+          '#dialogCaption',
+        );
+
+      const dialogDiagram =
+        document.querySelector<HTMLElement>(
+          '#dialogDiagram',
+        );
+
+      const dialogGuide =
+        document.querySelector<HTMLElement>(
+          '#dialogGuide',
+        );
+
+      const buttons = [
+        ...document.querySelectorAll<HTMLButtonElement>(
+          '[data-open-chord]',
+        ),
+      ];
+
+      function openChord(name: string) {
+        const chord = chordData.find(
+          (item) => item.name === name,
+        );
+
+        if (!chord || !dialog) return;
+
+        dialogName!.textContent =
+          chord.name;
+
+        dialogCaption!.textContent =
+          `G C E A · ${chord.frets
+            .map((value) =>
+              value < 0 ? 'X' : value,
+            )
+            .join('')}`;
+
+        dialogDiagram!.innerHTML =
+          clientDiagram(chord);
+
+        dialogGuide!.innerHTML =
+          chord.frets
+            .map(
+              (fret, index) => `
+                <div class="dialog-string">
+                  <span class="dialog-string-name">
+                    ${tuning[index]}
+                  </span>
+                  <span class="dialog-string-note">
+                    ${clientNoteName(index, fret)}
+                  </span>
+                </div>
+              `,
+            )
+            .join('');
+
+        if (!dialog.open) {
+          dialog.showModal();
+        }
+      }
+
+      buttons.forEach((button) => {
+        button.addEventListener('click', () => {
+          const name =
+            button.dataset.openChord;
+
+          if (name) {
+            openChord(name);
+          }
+        });
+      });
+
+      dialog?.addEventListener(
+        'click',
+        (event) => {
+          const target =
+            event.target as HTMLElement;
+
+          if (target === dialog) {
+            dialog.close();
+          }
+        },
+      );
+
+      document.addEventListener(
+        'keydown',
+        (event) => {
+          if (
+            event.key === 'Escape' &&
+            dialog?.open
+          ) {
+            event.preventDefault();
+            dialog.close();
+          }
+        },
+      );
+    </script>
+  </body>
+</html>

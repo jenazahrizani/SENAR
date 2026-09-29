@@ -1,5 +1,5 @@
 ---
-import { parseChordContent } from '../lib/chordParser';
+import { parseSongContent } from '../lib/chordParser';
 
 export interface Props {
   title: string;
@@ -9,7 +9,7 @@ export interface Props {
 }
 
 const { title, artist, key, content } = Astro.props;
-const parsedLines = parseChordContent(content);
+const parsedSong = parseSongContent(content);
 ---
 
 <section
@@ -17,18 +17,14 @@ const parsedLines = parseChordContent(content);
   data-song-detail
   data-original-key={key || ''}
 >
-  <!-- =========================================================
-       SONG HEADER
-  ========================================================== -->
-
   <header class="song-header">
-    <div class="song-header-main">
-
+    <div class="song-heading">
       <div class="song-eyebrow">
         <span class="eyebrow-line"></span>
-        <span>CHORD &amp; LYRICS</span>
+        <span>SENAR / CHORD</span>
       </div>
 
+      <div class="song-kicker">CHORD &amp; LYRICS</div>
       <h1>{title}</h1>
 
       <div class="song-meta">
@@ -40,116 +36,76 @@ const parsedLines = parseChordContent(content);
 
             <span class="song-key">
               <span class="key-label">KEY</span>
-
-              <span data-current-key>
-                {key}
-              </span>
+              <strong data-current-key>{key}</strong>
             </span>
           </>
         )}
       </div>
     </div>
 
-    <div class="header-actions">
-      <button
-        type="button"
-        class="icon-button"
-        data-focus-toggle
-        aria-label="Aktifkan mode fokus"
-        title="Mode fokus"
-      >
-        <svg
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-        >
-          <path
-            d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M3 16v3a2 2 0 0 0 2 2h3"
-          />
-        </svg>
-      </button>
-    </div>
+    <button
+      type="button"
+      class="focus-button"
+      data-focus-toggle
+      aria-label="Aktifkan mode fokus"
+      title="Focus mode"
+    >
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M8 3H5a2 2 0 0 0-2 2v3" />
+        <path d="M16 3h3a2 2 0 0 1 2 2v3" />
+        <path d="M21 16v3a2 2 0 0 1-2 2h-3" />
+        <path d="M3 16v3a2 2 0 0 0 2 2h3" />
+      </svg>
+      <span>Focus</span>
+    </button>
   </header>
 
-  <!-- =========================================================
-       PLAYER BAR
-  ========================================================== -->
-
-  <div
-    class="player-shell"
-    data-player
-  >
-    <div class="player-top">
-
-      <div class="player-status">
-        <span
-          class="status-dot"
-          data-status-dot
-        ></span>
-
-        <span data-status-text>
-          READY
-        </span>
+  <section class="player-shell" data-player aria-label="Song player">
+    <div class="player-header">
+      <div class="player-state">
+        <span class="status-dot" data-status-dot></span>
+        <span data-status-text>READY</span>
       </div>
 
-      <div class="player-title">
-        <span>PLAYER MODE</span>
-      </div>
+      <span class="player-mode">PLAYER MODE</span>
 
-      <div class="player-time">
-        <span data-progress-text>
-          0%
-        </span>
-      </div>
-
+      <span class="player-progress-text" data-progress-text>0%</span>
     </div>
 
-    <div
-      class="progress-track"
-      aria-hidden="true"
-    >
-      <div
-        class="progress-fill"
-        data-progress
-      ></div>
+    <div class="progress-track" aria-hidden="true">
+      <div class="progress-fill" data-progress></div>
     </div>
 
     <div class="player-controls">
-
-      <!-- AUTO SCROLL -->
-
-      <div class="control-group auto-scroll-controls">
-
+      <div class="player-main-controls">
         <button
           type="button"
           class="primary-control"
           data-scroll-toggle
           aria-label="Mulai auto scroll"
+          aria-pressed="false"
         >
-          <svg
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-            data-play-icon
-          >
-            <path d="M8 5v14l11-7z" />
-          </svg>
+          <span class="control-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true" data-play-icon>
+              <path d="M8 5v14l11-7z" />
+            </svg>
 
-          <svg
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-            data-pause-icon
-            class="player-icon-hidden"
-          >
-            <path d="M7 5h3v14H7zM14 5h3v14h-3z" />
-          </svg>
-
-          <span data-scroll-label>
-            Auto Scroll
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              data-pause-icon
+              class="player-icon-hidden"
+            >
+              <path d="M7 5h3v14H7z" />
+              <path d="M14 5h3v14h-3z" />
+            </svg>
           </span>
+
+          <span data-scroll-label>Auto Scroll</span>
         </button>
 
         <div class="speed-control">
-
-          <span>SPEED</span>
+          <span class="control-label">SPEED</span>
 
           <button
             type="button"
@@ -160,12 +116,7 @@ const parsedLines = parseChordContent(content);
             −
           </button>
 
-          <span
-            class="speed-value"
-            data-speed-value
-          >
-            1.10×
-          </span>
+          <strong class="speed-value" data-speed-value>1.00×</strong>
 
           <button
             type="button"
@@ -175,60 +126,32 @@ const parsedLines = parseChordContent(content);
           >
             +
           </button>
-
         </div>
-
       </div>
 
-      <!-- SECONDARY CONTROLS -->
-
-      <div class="control-group secondary-controls">
-
-        <button
-          type="button"
-          class="text-control"
-          data-reset
-        >
+      <div class="player-secondary-controls">
+        <button type="button" class="text-button" data-reset>
           Reset
         </button>
 
-        <button
-          type="button"
-          class="text-control"
-          data-scroll-top
-        >
+        <button type="button" class="text-button" data-scroll-top>
           Atas
         </button>
-
       </div>
     </div>
-  </div>
+  </section>
 
-  <!-- =========================================================
-       PLAYER TOOLS
-  ========================================================== -->
-
-  <div class="utility-bar">
-
+  <section class="utility-bar">
     <div class="utility-heading">
-      <span class="utility-label">
-        PLAYER TOOLS
-      </span>
-
-      <span class="utility-description">
-        optimized for ukulele · GCEA
-      </span>
+      <span class="utility-title">PLAYER TOOLS</span>
+      <span class="utility-subtitle">optimized for ukulele · GCEA</span>
     </div>
 
     <div class="utility-controls">
-
-      <!-- TRANSPOSE -->
-
-      <div class="utility-control transpose-control">
-
+      <div class="utility-group">
         <button
           type="button"
-          class="utility-button"
+          class="utility-action"
           data-transpose-down
           aria-label="Turunkan satu semitone"
         >
@@ -236,35 +159,26 @@ const parsedLines = parseChordContent(content);
         </button>
 
         <div class="utility-value">
-          <span class="utility-small">
-            TRANSPOSE
-          </span>
-
-          <strong data-transpose-value>
-            0
-          </strong>
+          <span>TRANSPOSE</span>
+          <strong data-transpose-value>0</strong>
         </div>
 
         <button
           type="button"
-          class="utility-button"
+          class="utility-action"
           data-transpose-up
           aria-label="Naikkan satu semitone"
         >
           +
         </button>
-
       </div>
 
-      <div class="utility-divider"></div>
+      <span class="utility-divider"></span>
 
-      <!-- TEXT -->
-
-      <div class="utility-control">
-
+      <div class="utility-group">
         <button
           type="button"
-          class="utility-button utility-button-wide"
+          class="utility-action utility-action-wide"
           data-font-down
           aria-label="Perkecil teks"
         >
@@ -272,295 +186,348 @@ const parsedLines = parseChordContent(content);
         </button>
 
         <div class="utility-value">
-          <span class="utility-small">
-            TEXT
-          </span>
-
-          <strong data-font-value>
-            100%
-          </strong>
+          <span>TEXT</span>
+          <strong data-font-value>100%</strong>
         </div>
 
         <button
           type="button"
-          class="utility-button utility-button-wide"
+          class="utility-action utility-action-wide"
           data-font-up
           aria-label="Perbesar teks"
         >
           A+
         </button>
-
       </div>
 
-      <div class="utility-divider"></div>
-
-      <!-- UKULELE MODE -->
+      <span class="utility-divider"></span>
 
       <button
         type="button"
-        class="utility-toggle"
+        class="mode-toggle"
         data-ukulele-toggle
         aria-pressed="false"
       >
-        <span class="toggle-indicator"></span>
+        <span class="toggle-track">
+          <span class="toggle-thumb"></span>
+        </span>
 
-        <span>
+        <span class="toggle-copy">
           <strong>Ukulele Mode</strong>
-          <small>Chord lebih besar</small>
+          <small>Enlarge chord</small>
         </span>
       </button>
-
     </div>
-  </div>
+  </section>
 
-  <!-- =========================================================
-       CHORD CONTENT
-  ========================================================== -->
-
-  <article
-    class="lyrics-container"
-    data-lyrics
-  >
+  <article class="lyrics-container" data-lyrics>
     <div class="lyrics-inner">
+      {
+        parsedSong.map((block, blockIndex) => {
+          if (block.type === 'blank') {
+            return (
+              <div
+                class="song-blank"
+                aria-hidden="true"
+                style={`--line-index:${blockIndex}`}
+              ></div>
+            );
+          }
 
-      {parsedLines.map((line, lineIndex) => (
-        <div
-          class:list={[
-            'chord-line',
-            line.length === 0 && 'empty-line'
-          ]}
-          style={`--line-index:${lineIndex}`}
-        >
-          {line.length === 0 ? (
-            <span
-              class="line-spacer"
-              aria-hidden="true"
-            ></span>
-          ) : (
-            line.map((part) => {
+          if (block.type === 'section') {
+            const sectionName = block.value
+              .replace(/^\[/, '')
+              .replace(/\]$/, '')
+              .trim();
 
-              if (part.type === 'section') {
-                return (
-                  <div
-                    class="section-marker"
-                    data-section
-                    data-value={part.value}
-                  >
-                    <span class="section-line"></span>
-
-                    <span>
-                      {part.value}
-                    </span>
-
-                    <span class="section-line"></span>
-                  </div>
-                );
-              }
-
-              if (part.type === 'chord') {
-                return (
-                  <span
-                    class="chord-item"
-                    data-chord={part.value}
-                    data-original-chord={part.value}
-                    title={`Chord ${part.value}`}
-                  >
-                    <span class="chord-name">
-                      {part.value}
-                    </span>
-                  </span>
-                );
-              }
-
-              return (
-                <span class="lyric-item">
-                  {part.value}
+            return (
+              <div
+                class="section-marker"
+                style={`--line-index:${blockIndex}`}
+              >
+                <span class="section-number">
+                  {String(blockIndex + 1).padStart(2, '0')}
                 </span>
-              );
-            })
-          )}
-        </div>
-      ))}
 
+                <span class="section-rule"></span>
+
+                <span class="section-name">
+                  {sectionName}
+                </span>
+
+                <span class="section-rule section-rule-grow"></span>
+              </div>
+            );
+          }
+
+          if (block.type === 'line') {
+            return (
+              <div
+                class="song-row paired-row"
+                style={`--line-index:${blockIndex}`}
+              >
+                <div class="chord-layer" aria-label="Chords">
+                  {block.chords.map((chord) => (
+                    <button
+                      type="button"
+                      class="chord-button"
+                      data-chord={chord.value}
+                      data-original-chord={chord.value}
+                      style={`--chord-position:${chord.position}`}
+                      title={`Lihat chord ${chord.value}`}
+                      aria-label={`Lihat diagram chord ${chord.value}`}
+                    >
+                      <span class="chord-name">
+                        {chord.value}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+
+                <div class="lyric-layer" data-lyric-line>
+                  {block.lyric}
+                </div>
+              </div>
+            );
+          }
+
+          if (block.type === 'instrumental') {
+            return (
+              <div
+                class="song-row instrumental-row"
+                style={`--line-index:${blockIndex}`}
+              >
+                <div class="chord-layer instrumental-chord-layer">
+                  {block.chords.map((chord) => (
+                    <button
+                      type="button"
+                      class="chord-button"
+                      data-chord={chord.value}
+                      data-original-chord={chord.value}
+                      style={`--chord-position:${chord.position}`}
+                      title={`Lihat chord ${chord.value}`}
+                      aria-label={`Lihat diagram chord ${chord.value}`}
+                    >
+                      <span class="chord-name">
+                        {chord.value}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          }
+
+          if (block.type === 'lyric') {
+            return (
+              <div
+                class="song-row lyric-only-row"
+                style={`--line-index:${blockIndex}`}
+              >
+                <div class="lyric-layer" data-lyric-line>
+                  {block.lyric}
+                </div>
+              </div>
+            );
+          }
+
+          return null;
+        })
+      }
     </div>
   </article>
 
-  <!-- =========================================================
-       MOBILE PLAYER
-  ========================================================== -->
+  <dialog
+    id="chordDialog"
+    class="chord-dialog"
+    aria-labelledby="dialogChordName"
+  >
+    <div class="dialog-inner">
+      <div class="dialog-top">
+        <div>
+          <h2 id="dialogChordName" class="dialog-name">C</h2>
 
-  <div class="mobile-player">
+          <p id="dialogCaption" class="dialog-caption">
+            G C E A · 0003
+          </p>
+        </div>
 
-    <button
-      type="button"
-      class="mobile-play"
-      data-mobile-play
-      aria-label="Mulai atau hentikan auto scroll"
-    >
-      <svg
-        viewBox="0 0 24 24"
-        aria-hidden="true"
-        data-mobile-play-icon
+        <form method="dialog">
+          <button
+            type="submit"
+            class="dialog-close"
+            aria-label="Close chord"
+          >
+            ×
+          </button>
+        </form>
+      </div>
+
+      <div id="dialogDiagram" class="dialog-diagram"></div>
+
+      <div
+        id="dialogGuide"
+        class="dialog-guide"
+        aria-label="Strings and notes"
+      ></div>
+    </div>
+  </dialog>
+
+  <div
+    class="mobile-player"
+    data-mobile-player
+    aria-label="Auto scroll controls"
+  >
+    <div class="mobile-player-main">
+      <button
+        type="button"
+        class="mobile-play"
+        data-mobile-play
+        aria-label="Mulai auto scroll"
+        aria-pressed="false"
       >
-        <path d="M8 5v14l11-7z" />
-      </svg>
+        <svg
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+          data-mobile-play-icon
+        >
+          <path d="M8 5v14l11-7z" />
+        </svg>
 
-      <svg
-        viewBox="0 0 24 24"
-        aria-hidden="true"
-        data-mobile-pause-icon
-        class="player-icon-hidden"
+        <svg
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+          data-mobile-pause-icon
+          class="player-icon-hidden"
+        >
+          <path d="M7 5h3v14H7z" />
+          <path d="M14 5h3v14h-3z" />
+        </svg>
+      </button>
+
+      <div class="mobile-player-info">
+        <span data-mobile-status>READY</span>
+        <strong data-mobile-speed>1.00×</strong>
+      </div>
+
+      <div
+        class="mobile-speed-control"
+        role="group"
+        aria-label="Kecepatan auto scroll"
       >
-        <path d="M7 5h3v14H7zM14 5h3v14h-3z" />
-      </svg>
-    </button>
+        <button
+          type="button"
+          class="mobile-speed-button"
+          data-mobile-speed-down
+          aria-label="Kurangi kecepatan scroll"
+        >
+          −
+        </button>
 
-    <div class="mobile-player-info">
-      <span>SCROLL</span>
-
-      <strong data-mobile-speed>
-        1.10×
-      </strong>
+        <button
+          type="button"
+          class="mobile-speed-button"
+          data-mobile-speed-up
+          aria-label="Tambah kecepatan scroll"
+        >
+          +
+        </button>
+      </div>
     </div>
 
-    <button
-      type="button"
-      class="mobile-speed"
-      data-mobile-speed-up
-      aria-label="Naikkan kecepatan scroll"
-    >
-      +
-    </button>
-
+    <div class="mobile-progress-track" aria-hidden="true">
+      <span
+        class="mobile-progress-fill"
+        data-mobile-progress
+      ></span>
+    </div>
   </div>
 </section>
 
 <script>
-  const root = document.querySelector(
-    '[data-song-detail]'
-  );
+  const root = document.querySelector('[data-song-detail]');
 
   if (root instanceof HTMLElement) {
+    type NotationStyle = 'auto' | 'flat' | 'sharp';
+
+    type Barre = {
+      fret: number;
+      from: number;
+      to: number;
+      finger: number;
+    };
+
+    type ChordShape = {
+      frets: number[];
+      fingers: number[];
+      barres: Barre[];
+    };
+
+    type ChordDefinition = {
+      label: string;
+      intervals: number[];
+      required: number[];
+    };
+
+    type ParsedChord = {
+      original: string;
+      root: string;
+      rootPc: number;
+      quality: string;
+      bass: string | null;
+      bassPc: number | null;
+    };
+
+    type BestCandidate = {
+      score: number;
+      frets: number[];
+    };
+
+    const lyrics = root.querySelector('[data-lyrics]');
+    const progress = root.querySelector('[data-progress]');
+    const progressText = root.querySelector('[data-progress-text]');
+    const statusText = root.querySelector('[data-status-text]');
+    const statusDot = root.querySelector('[data-status-dot]');
+    const scrollToggle = root.querySelector('[data-scroll-toggle]');
+    const scrollLabel = root.querySelector('[data-scroll-label]');
+    const playIcon = root.querySelector('[data-play-icon]');
+    const pauseIcon = root.querySelector('[data-pause-icon]');
+    const mobilePlayIcon = root.querySelector('[data-mobile-play-icon]');
+    const mobilePauseIcon = root.querySelector('[data-mobile-pause-icon]');
+    const speedValue = root.querySelector('[data-speed-value]');
+    const mobileSpeed = root.querySelector('[data-mobile-speed]');
+    const mobilePlay = root.querySelector('[data-mobile-play]');
+    const mobilePlayer = root.querySelector('[data-mobile-player]');
+    const mobileStatus = root.querySelector('[data-mobile-status]');
+    const mobileProgress = root.querySelector('[data-mobile-progress]');
+    const mobileSpeedDown = root.querySelector('[data-mobile-speed-down]');
+    const mobileSpeedUp = root.querySelector('[data-mobile-speed-up]');
+    const transposeValue = root.querySelector('[data-transpose-value]');
+    const fontValue = root.querySelector('[data-font-value]');
+    const currentKey = root.querySelector('[data-current-key]');
+    const focusToggle = root.querySelector('[data-focus-toggle]');
+    const ukuleleToggle = root.querySelector('[data-ukulele-toggle]');
+
+    const chordDialog = root.querySelector('#chordDialog');
+    const dialogChordName = root.querySelector('#dialogChordName');
+    const dialogCaption = root.querySelector('#dialogCaption');
+    const dialogDiagram = root.querySelector('#dialogDiagram');
+    const dialogGuide = root.querySelector('#dialogGuide');
+    const chordDialogClose = root.querySelector('.dialog-close');
 
     /* =========================================================
-       ELEMENTS
+       CHORD ENGINE
+       Standard high-G GCEA.
+
+       Goals:
+       - Never show a mathematically-valid but musically-wrong voicing.
+       - Prefer familiar low-position shapes for common chords.
+       - Validate every generated shape against the exact chord formula.
+       - Respect slash-chord bass notes.
+       - Cache generated shapes so repeated dialogs are instant.
     ========================================================== */
 
-    const lyrics =
-      root.querySelector('[data-lyrics]');
-
-    const progress =
-      root.querySelector('[data-progress]');
-
-    const progressText =
-      root.querySelector('[data-progress-text]');
-
-    const statusText =
-      root.querySelector('[data-status-text]');
-
-    const statusDot =
-      root.querySelector('[data-status-dot]');
-
-    const scrollToggle =
-      root.querySelector('[data-scroll-toggle]');
-
-    const scrollLabel =
-      root.querySelector('[data-scroll-label]');
-
-    const playIcon =
-      root.querySelector('[data-play-icon]');
-
-    const pauseIcon =
-      root.querySelector('[data-pause-icon]');
-
-    const speedValue =
-      root.querySelector('[data-speed-value]');
-
-    const mobileSpeed =
-      root.querySelector('[data-mobile-speed]');
-
-    const mobilePlay =
-      root.querySelector('[data-mobile-play]');
-
-    const mobilePlayIcon =
-      root.querySelector('[data-mobile-play-icon]');
-
-    const mobilePauseIcon =
-      root.querySelector('[data-mobile-pause-icon]');
-
-    const transposeValue =
-      root.querySelector('[data-transpose-value]');
-
-    const fontValue =
-      root.querySelector('[data-font-value]');
-
-    const currentKey =
-      root.querySelector('[data-current-key]');
-
-    const focusToggle =
-      root.querySelector('[data-focus-toggle]');
-
-    const ukuleleToggle =
-      root.querySelector('[data-ukulele-toggle]');
-
-    const chordItems = Array.from(
-      root.querySelectorAll('[data-chord]')
-    );
-
-    /* =========================================================
-       STATE
-    ========================================================== */
-
-    let isScrolling = false;
-
-    let animationFrame:
-      number | null = null;
-
-    let scrollTimeout:
-      ReturnType<typeof setTimeout> | null = null;
-
-    let lastTimestamp = 0;
-
-    let scrollSpeed = 1.10;
-
-    let speedIndex = 3;
-
-    let transpose = 0;
-
-    let fontScale = 1;
-
-    /* =========================================================
-       CONFIG
-    ========================================================== */
-
-    const SPEEDS = [
-      0.60,
-      0.80,
-      1.00,
-      1.10,
-      1.25,
-      1.50,
-      2.00,
-      2.50,
-      3.00,
-      4.00,
-      5.00,
-      6.00,
-      8.00
-    ];
-
-    const FONT_MIN = 0.85;
-    const FONT_MAX = 1.35;
-    const FONT_STEP = 0.05;
-
-    const TRANSPOSE_MIN = -12;
-    const TRANSPOSE_MAX = 12;
-
-    /* =========================================================
-       NOTES
-    ========================================================== */
-
-    const notes = [
+    const NOTES_SHARP: string[] = [
       'C',
       'C#',
       'D',
@@ -572,84 +539,1869 @@ const parsedLines = parseChordContent(content);
       'G#',
       'A',
       'A#',
-      'B'
+      'B',
     ];
 
-    const flatToSharp: Record<
-      string,
-      string
-    > = {
+    const NOTES_FLAT: string[] = [
+      'C',
+      'Db',
+      'D',
+      'Eb',
+      'E',
+      'F',
+      'Gb',
+      'G',
+      'Ab',
+      'A',
+      'Bb',
+      'B',
+    ];
+
+    const TUNING_PC: number[] = [7, 0, 4, 9];
+    const TUNING_MIDI: number[] = [67, 60, 64, 69];
+    const STRING_NAMES: string[] = ['G', 'C', 'E', 'A'];
+
+    const NOTE_PC: Record<string, number> = {
+      C: 0,
+      'C#': 1,
+      Db: 1,
+      D: 2,
+      'D#': 3,
+      Eb: 3,
+      E: 4,
+      F: 5,
+      'F#': 6,
+      Gb: 6,
+      G: 7,
+      'G#': 8,
+      Ab: 8,
+      A: 9,
+      'A#': 10,
+      Bb: 10,
+      B: 11,
+    };
+
+    const ROOT_ALIASES: Record<string, string> = {
+      Cb: 'B',
+      'B#': 'C',
       Db: 'C#',
       Eb: 'D#',
+      Fb: 'E',
       Gb: 'F#',
       Ab: 'G#',
-      Bb: 'A#'
+      Bb: 'A#',
     };
 
-    const normalizeNote = (
-      note: string
-    ): string => {
-      return flatToSharp[note] || note;
+    const QUALITIES: Record<string, ChordDefinition> = {
+      '': {
+        label: 'Major',
+        intervals: [0, 4, 7],
+        required: [0, 4, 7],
+      },
+
+      m: {
+        label: 'Minor',
+        intervals: [0, 3, 7],
+        required: [0, 3, 7],
+      },
+
+      '5': {
+        label: 'Power',
+        intervals: [0, 7],
+        required: [0, 7],
+      },
+
+      aug: {
+        label: 'Augmented',
+        intervals: [0, 4, 8],
+        required: [0, 4, 8],
+      },
+
+      dim: {
+        label: 'Diminished',
+        intervals: [0, 3, 6],
+        required: [0, 3, 6],
+      },
+
+      '6': {
+        label: 'Sixth',
+        intervals: [0, 4, 7, 9],
+        required: [0, 4, 9],
+      },
+
+      m6: {
+        label: 'Minor 6th',
+        intervals: [0, 3, 7, 9],
+        required: [0, 3, 9],
+      },
+
+      '7': {
+        label: 'Dominant 7th',
+        intervals: [0, 4, 7, 10],
+        required: [0, 4, 10],
+      },
+
+      m7: {
+        label: 'Minor 7th',
+        intervals: [0, 3, 7, 10],
+        required: [0, 3, 10],
+      },
+
+      maj7: {
+        label: 'Major 7th',
+        intervals: [0, 4, 7, 11],
+        required: [0, 4, 11],
+      },
+
+      dim7: {
+        label: 'Diminished 7th',
+        intervals: [0, 3, 6, 9],
+        required: [0, 3, 6, 9],
+      },
+
+      m7b5: {
+        label: 'Half-Diminished 7th',
+        intervals: [0, 3, 6, 10],
+        required: [0, 3, 6, 10],
+      },
+
+      aug7: {
+        label: 'Augmented 7th',
+        intervals: [0, 4, 8, 10],
+        required: [0, 4, 10],
+      },
+
+      mMaj7: {
+        label: 'Minor-Major 7th',
+        intervals: [0, 3, 7, 11],
+        required: [0, 3, 11],
+      },
+
+      sus2: {
+        label: 'Suspended 2nd',
+        intervals: [0, 2, 7],
+        required: [0, 2, 7],
+      },
+
+      sus4: {
+        label: 'Suspended 4th',
+        intervals: [0, 5, 7],
+        required: [0, 5, 7],
+      },
+
+      '7sus2': {
+        label: 'Dominant 7 Suspended 2nd',
+        intervals: [0, 2, 7, 10],
+        required: [0, 2, 7, 10],
+      },
+
+      '7sus4': {
+        label: 'Dominant 7 Suspended 4th',
+        intervals: [0, 5, 7, 10],
+        required: [0, 5, 7, 10],
+      },
+
+      '9': {
+        label: 'Ninth',
+        intervals: [0, 2, 4, 7, 10],
+        required: [0, 2, 4, 10],
+      },
+
+      m9: {
+        label: 'Minor 9th',
+        intervals: [0, 2, 3, 7, 10],
+        required: [0, 2, 3, 10],
+      },
+
+      maj9: {
+        label: 'Major 9th',
+        intervals: [0, 2, 4, 7, 11],
+        required: [0, 2, 4, 11],
+      },
+
+      '11': {
+        label: 'Eleventh',
+        intervals: [0, 2, 4, 5, 7, 10],
+        required: [0, 4, 5, 10],
+      },
+
+      m11: {
+        label: 'Minor 11th',
+        intervals: [0, 2, 3, 5, 7, 10],
+        required: [0, 3, 5, 10],
+      },
+
+      maj11: {
+        label: 'Major 11th',
+        intervals: [0, 2, 4, 5, 7, 11],
+        required: [0, 4, 5, 11],
+      },
+
+      '13': {
+        label: 'Thirteenth',
+        intervals: [0, 2, 4, 7, 9, 10],
+        required: [0, 4, 9, 10],
+      },
+
+      m13: {
+        label: 'Minor 13th',
+        intervals: [0, 2, 3, 7, 9, 10],
+        required: [0, 3, 9, 10],
+      },
+
+      maj13: {
+        label: 'Major 13th',
+        intervals: [0, 2, 4, 7, 9, 11],
+        required: [0, 4, 9, 11],
+      },
+
+      add9: {
+        label: 'Add 9',
+        intervals: [0, 2, 4, 7],
+        required: [0, 2, 4, 7],
+      },
+
+      madd9: {
+        label: 'Minor Add 9',
+        intervals: [0, 2, 3, 7],
+        required: [0, 2, 3, 7],
+      },
     };
 
-    /* =========================================================
-       SCROLL DIMENSIONS
-    ========================================================== */
+    const QUALITY_ALIASES: Record<string, string> = {
+      major: '',
+      maj: '',
+      M: '',
+      Major: '',
+      minor: 'm',
+      min: 'm',
+      Minor: 'm',
+      min7: 'm7',
+      minor7: 'm7',
+      major7: 'maj7',
+      Major7: 'maj7',
+      M7: 'maj7',
+      major9: 'maj9',
+      Major9: 'maj9',
+      M9: 'maj9',
+      minor9: 'm9',
+      minor11: 'm11',
+      minor13: 'm13',
+      dominant7: '7',
+      dom7: '7',
+      halfdiminished: 'm7b5',
+      'half-diminished': 'm7b5',
+      sus: 'sus4',
+      '2': 'sus2',
+      '4': 'sus4',
+    };
 
-    const getScrollableHeight = (): number => {
-      return Math.max(
-        0,
-        document.documentElement.scrollHeight -
-          window.innerHeight
+    const GENERATED_SHAPE_CACHE = new Map<string, ChordShape>();
+
+    const SHAPES: Record<string, ChordShape> = {
+      C: {
+        frets: [0, 0, 0, 3],
+        fingers: [0, 0, 0, 3],
+        barres: [],
+      },
+
+      'C#': {
+        frets: [1, 1, 1, 4],
+        fingers: [1, 1, 1, 4],
+        barres: [
+          {
+            fret: 1,
+            from: 0,
+            to: 2,
+            finger: 1,
+          },
+        ],
+      },
+
+      D: {
+        frets: [2, 2, 2, 0],
+        fingers: [1, 2, 3, 0],
+        barres: [],
+      },
+
+      'D#': {
+        frets: [3, 3, 3, 1],
+        fingers: [2, 3, 4, 1],
+        barres: [],
+      },
+
+      E: {
+        frets: [1, 4, 0, 2],
+        fingers: [1, 4, 0, 2],
+        barres: [],
+      },
+
+      F: {
+        frets: [2, 0, 1, 0],
+        fingers: [2, 0, 1, 0],
+        barres: [],
+      },
+
+      'F#': {
+        frets: [3, 1, 2, 1],
+        fingers: [3, 1, 2, 1],
+        barres: [
+          {
+            fret: 1,
+            from: 1,
+            to: 3,
+            finger: 1,
+          },
+        ],
+      },
+
+      G: {
+        frets: [0, 2, 3, 2],
+        fingers: [0, 1, 3, 2],
+        barres: [],
+      },
+
+      'G#': {
+        frets: [1, 3, 4, 3],
+        fingers: [1, 2, 4, 3],
+        barres: [],
+      },
+
+      A: {
+        frets: [2, 1, 0, 0],
+        fingers: [2, 1, 0, 0],
+        barres: [],
+      },
+
+      'A#': {
+        frets: [3, 2, 1, 1],
+        fingers: [3, 2, 1, 1],
+        barres: [
+          {
+            fret: 1,
+            from: 2,
+            to: 3,
+            finger: 1,
+          },
+        ],
+      },
+
+      B: {
+        frets: [4, 3, 2, 2],
+        fingers: [3, 2, 1, 1],
+        barres: [
+          {
+            fret: 2,
+            from: 2,
+            to: 3,
+            finger: 1,
+          },
+        ],
+      },
+
+      Cm: {
+        frets: [0, 3, 3, 3],
+        fingers: [0, 1, 1, 1],
+        barres: [
+          {
+            fret: 3,
+            from: 1,
+            to: 3,
+            finger: 1,
+          },
+        ],
+      },
+
+      'C#m': {
+        frets: [1, 1, 0, 4],
+        fingers: [1, 1, 0, 4],
+        barres: [
+          {
+            fret: 1,
+            from: 0,
+            to: 1,
+            finger: 1,
+          },
+        ],
+      },
+
+      Dm: {
+        frets: [2, 2, 1, 0],
+        fingers: [2, 3, 1, 0],
+        barres: [],
+      },
+
+      'D#m': {
+        frets: [3, 3, 2, 1],
+        fingers: [2, 3, 1, 1],
+        barres: [
+          {
+            fret: 1,
+            from: 2,
+            to: 3,
+            finger: 1,
+          },
+        ],
+      },
+
+      Em: {
+        frets: [0, 4, 3, 2],
+        fingers: [0, 3, 2, 1],
+        barres: [],
+      },
+
+      Fm: {
+        frets: [1, 0, 1, 3],
+        fingers: [1, 0, 2, 3],
+        barres: [],
+      },
+
+      'F#m': {
+        frets: [2, 1, 2, 0],
+        fingers: [2, 1, 3, 0],
+        barres: [],
+      },
+
+      Gm: {
+        frets: [0, 2, 3, 1],
+        fingers: [0, 2, 3, 1],
+        barres: [],
+      },
+
+      'G#m': {
+        frets: [1, 3, 4, 2],
+        fingers: [1, 2, 4, 3],
+        barres: [],
+      },
+
+      Am: {
+        frets: [2, 0, 0, 0],
+        fingers: [2, 0, 0, 0],
+        barres: [],
+      },
+
+      'A#m': {
+        frets: [3, 1, 1, 1],
+        fingers: [3, 1, 1, 1],
+        barres: [
+          {
+            fret: 1,
+            from: 1,
+            to: 3,
+            finger: 1,
+          },
+        ],
+      },
+
+      Bm: {
+        frets: [4, 2, 2, 2],
+        fingers: [3, 1, 1, 1],
+        barres: [
+          {
+            fret: 2,
+            from: 1,
+            to: 3,
+            finger: 1,
+          },
+        ],
+      },
+
+      C7: {
+        frets: [0, 0, 0, 1],
+        fingers: [0, 0, 0, 1],
+        barres: [],
+      },
+
+      D7: {
+        frets: [2, 2, 2, 3],
+        fingers: [1, 1, 1, 2],
+        barres: [
+          {
+            fret: 2,
+            from: 0,
+            to: 2,
+            finger: 1,
+          },
+        ],
+      },
+
+      E7: {
+        frets: [1, 2, 0, 2],
+        fingers: [1, 2, 0, 3],
+        barres: [],
+      },
+
+      F7: {
+        frets: [2, 3, 1, 3],
+        fingers: [2, 3, 1, 4],
+        barres: [],
+      },
+
+      G7: {
+        frets: [0, 2, 1, 2],
+        fingers: [0, 2, 1, 3],
+        barres: [],
+      },
+
+      A7: {
+        frets: [0, 1, 0, 0],
+        fingers: [0, 1, 0, 0],
+        barres: [],
+      },
+
+      B7: {
+        frets: [2, 3, 2, 2],
+        fingers: [1, 2, 1, 1],
+        barres: [
+          {
+            fret: 2,
+            from: 0,
+            to: 3,
+            finger: 1,
+          },
+        ],
+      },
+
+      Cmaj7: {
+        frets: [0, 0, 0, 2],
+        fingers: [0, 0, 0, 1],
+        barres: [],
+      },
+
+      Dmaj7: {
+        frets: [2, 2, 2, 4],
+        fingers: [1, 1, 1, 4],
+        barres: [
+          {
+            fret: 2,
+            from: 0,
+            to: 2,
+            finger: 1,
+          },
+        ],
+      },
+
+      Emaj7: {
+        frets: [1, 3, 0, 2],
+        fingers: [1, 3, 0, 2],
+        barres: [],
+      },
+
+      Fmaj7: {
+        frets: [2, 4, 1, 3],
+        fingers: [2, 4, 1, 3],
+        barres: [],
+      },
+
+      Gmaj7: {
+        frets: [0, 2, 2, 2],
+        fingers: [0, 1, 2, 3],
+        barres: [],
+      },
+
+      Amaj7: {
+        frets: [1, 1, 0, 0],
+        fingers: [1, 1, 0, 0],
+        barres: [
+          {
+            fret: 1,
+            from: 0,
+            to: 1,
+            finger: 1,
+          },
+        ],
+      },
+
+      Em7: {
+        frets: [0, 2, 0, 2],
+        fingers: [0, 1, 0, 2],
+        barres: [],
+      },
+
+      Gm7: {
+        frets: [0, 2, 1, 1],
+        fingers: [0, 2, 1, 1],
+        barres: [
+          {
+            fret: 1,
+            from: 2,
+            to: 3,
+            finger: 1,
+          },
+        ],
+      },
+
+      Am7: {
+        frets: [0, 0, 0, 0],
+        fingers: [0, 0, 0, 0],
+        barres: [],
+      },
+
+      Bm7: {
+        frets: [2, 2, 2, 2],
+        fingers: [1, 1, 1, 1],
+        barres: [
+          {
+            fret: 2,
+            from: 0,
+            to: 3,
+            finger: 1,
+          },
+        ],
+      },
+
+      C6: {
+        frets: [0, 0, 0, 0],
+        fingers: [0, 0, 0, 0],
+        barres: [],
+      },
+
+      Csus2: {
+        frets: [0, 2, 3, 3],
+        fingers: [0, 1, 2, 3],
+        barres: [],
+      },
+
+      Csus4: {
+        frets: [0, 0, 1, 3],
+        fingers: [0, 0, 1, 3],
+        barres: [],
+      },
+
+      Cadd9: {
+        frets: [0, 2, 0, 3],
+        fingers: [0, 1, 0, 3],
+        barres: [],
+      },
+
+      Dsus2: {
+        frets: [2, 2, 0, 0],
+        fingers: [1, 2, 0, 0],
+        barres: [],
+      },
+
+      Dsus4: {
+        frets: [0, 2, 3, 0],
+        fingers: [0, 1, 3, 0],
+        barres: [],
+      },
+    };
+
+    function cloneShape(shape: ChordShape): ChordShape {
+      return {
+        frets: [...shape.frets],
+        fingers: [...shape.fingers],
+        barres: shape.barres.map((barre: Barre) => ({
+          ...barre,
+        })),
+      };
+    }
+
+    function normalizeRoot(value: string): string | null {
+      const normalized = String(value || '')
+        .trim()
+        .replace('♯', '#')
+        .replace('♭', 'b');
+
+      const alias = ROOT_ALIASES[normalized] ?? normalized;
+
+      if (NOTE_PC[alias] === undefined) {
+        return null;
+      }
+
+      return NOTES_SHARP[NOTE_PC[alias]];
+    }
+
+    function normalizeQuality(raw: string): string {
+      let q = String(raw || '')
+        .trim()
+        .replaceAll(' ', '')
+        .replaceAll('(', '')
+        .replaceAll(')', '')
+        .replaceAll('Δ', 'maj7')
+        .replaceAll('°', 'dim')
+        .replaceAll('ø', 'm7b5')
+        .replaceAll('−', 'm');
+
+      q = QUALITY_ALIASES[q] ?? q;
+
+      return Object.prototype.hasOwnProperty.call(
+        QUALITIES,
+        q,
+      )
+        ? q
+        : q;
+    }
+
+    function parseChord(chord: string): ParsedChord | null {
+      const clean = String(chord || '').trim();
+
+      if (
+        !clean ||
+        clean === 'N.C.' ||
+        clean === 'NC' ||
+        clean === 'N/C'
+      ) {
+        return null;
+      }
+
+      const match = clean.match(
+        /^([A-Ga-g](?:#|b|♯|♭)?)([^/]*?)(?:\/([A-Ga-g](?:#|b|♯|♭)?))?$/,
       );
-    };
 
-    /* =========================================================
-       PROGRESS
-    ========================================================== */
+      if (!match) {
+        return null;
+      }
 
-    const updateProgress = (): void => {
+      const root = normalizeRoot(match[1]);
 
-      const max =
-        getScrollableHeight();
+      if (!root) {
+        return null;
+      }
 
-      const current =
-        window.scrollY;
+      const quality = normalizeQuality(match[2]);
+      const bass = match[3]
+        ? normalizeRoot(match[3])
+        : null;
 
-      const percentage =
-        max <= 0
-          ? 0
-          : Math.min(
-              100,
-              Math.max(
-                0,
-                (current / max) * 100
-              )
+      return {
+        original: clean,
+        root,
+        rootPc: NOTE_PC[root],
+        quality,
+        bass,
+        bassPc: bass === null
+          ? null
+          : NOTE_PC[bass],
+      };
+    }
+
+    function chordDefinition(
+      parsed: ParsedChord,
+    ): ChordDefinition | null {
+      return QUALITIES[parsed.quality] || null;
+    }
+
+    function shapeIsValid(
+      frets: number[],
+      parsed: ParsedChord,
+      definition: ChordDefinition,
+    ): boolean {
+      if (!Array.isArray(frets) || frets.length !== 4) {
+        return false;
+      }
+
+      const pitchClasses = frets.map(
+        (fret: number, index: number) => {
+          if (fret < 0) {
+            return null;
+          }
+
+          return (
+            TUNING_PC[index] + fret
+          ) % 12;
+        },
+      );
+
+      const sounding = pitchClasses.filter(
+        (value): value is number => value !== null,
+      );
+
+      if (
+        !sounding.length ||
+        !sounding.includes(parsed.rootPc)
+      ) {
+        return false;
+      }
+
+      const allowed = new Set(
+        definition.intervals.map(
+          interval =>
+            (parsed.rootPc + interval) % 12,
+        ),
+      );
+
+      if (
+        sounding.some(
+          value => !allowed.has(value),
+        )
+      ) {
+        return false;
+      }
+
+      const relative = new Set(
+        sounding.map(
+          value =>
+            (value - parsed.rootPc + 12) % 12,
+        ),
+      );
+
+      if (
+        definition.required.some(
+          interval => !relative.has(interval),
+        )
+      ) {
+        return false;
+      }
+
+      if (parsed.bassPc !== null) {
+        const soundingMidi = frets
+          .map(
+            (fret, index) =>
+              fret < 0
+                ? null
+                : TUNING_MIDI[index] + fret,
+          )
+          .filter(
+            (value): value is number =>
+              value !== null,
+          );
+
+        if (!soundingMidi.length) {
+          return false;
+        }
+
+        const lowestMidi = Math.min(
+          ...soundingMidi,
+        );
+
+        if (
+          lowestMidi % 12 !==
+          parsed.bassPc
+        ) {
+          return false;
+        }
+      }
+
+      const fretted = frets.filter(
+        (fret: number) => fret > 0,
+      );
+
+      if (
+        fretted.length &&
+        Math.max(...fretted) -
+          Math.min(...fretted) >
+          4
+      ) {
+        return false;
+      }
+
+      return true;
+    }
+
+    function scoreShape(
+      frets: number[],
+      parsed: ParsedChord,
+    ): number {
+      const fretted = frets.filter(
+        (fret: number) => fret > 0,
+      );
+
+      const maxFret = fretted.length
+        ? Math.max(...fretted)
+        : 0;
+
+      const minFret = fretted.length
+        ? Math.min(...fretted)
+        : 0;
+
+      const span = fretted.length
+        ? maxFret - minFret
+        : 0;
+
+      const openCount = frets.filter(
+        (fret: number) => fret === 0,
+      ).length;
+
+      const mutedCount = frets.filter(
+        (fret: number) => fret < 0,
+      ).length;
+
+      const soundingMidi = frets
+        .map(
+          (fret, index) =>
+            fret < 0
+              ? null
+              : TUNING_MIDI[index] + fret,
+        )
+        .filter(
+          (value): value is number =>
+            value !== null,
+        );
+
+      const lowestPc = soundingMidi.length
+        ? Math.min(...soundingMidi) % 12
+        : null;
+
+      let score = 0;
+
+      score += maxFret * 5;
+      score += span * 9;
+      score += mutedCount * 40;
+      score -= openCount * 4;
+
+      if (maxFret <= 4) {
+        score -= 12;
+      }
+
+      if (
+        parsed.bassPc === null &&
+        lowestPc === parsed.rootPc
+      ) {
+        score -= 9;
+      }
+
+      if (
+        parsed.bassPc !== null &&
+        lowestPc === parsed.bassPc
+      ) {
+        score -= 24;
+      }
+
+      const groups = new Map<number, number[]>();
+
+      frets.forEach(
+        (fret: number, index: number) => {
+          if (fret <= 0) {
+            return;
+          }
+
+          const indexes = groups.get(fret);
+
+          if (indexes) {
+            indexes.push(index);
+          } else {
+            groups.set(fret, [index]);
+          }
+        },
+      );
+
+      for (const indexes of groups.values()) {
+        if (indexes.length < 2) {
+          continue;
+        }
+
+        const min = Math.min(...indexes);
+        const max = Math.max(...indexes);
+
+        if (
+          max - min + 1 ===
+          indexes.length
+        ) {
+          score -= 10;
+        }
+      }
+
+      return score;
+    }
+
+    function buildFingerAssignment(
+      frets: number[],
+    ): Pick<
+      ChordShape,
+      'fingers' | 'barres'
+    > {
+      const fingers: number[] = [
+        0,
+        0,
+        0,
+        0,
+      ];
+
+      const barres: Barre[] = [];
+      const groups = new Map<
+        number,
+        number[]
+      >();
+
+      frets.forEach(
+        (fret: number, index: number) => {
+          if (fret <= 0) {
+            return;
+          }
+
+          const indexes = groups.get(fret);
+
+          if (indexes) {
+            indexes.push(index);
+          } else {
+            groups.set(fret, [index]);
+          }
+        },
+      );
+
+      const barreIndexes = new Set<number>();
+
+      [...groups.entries()]
+        .sort(
+          (
+            a: [number, number[]],
+            b: [number, number[]],
+          ) => a[0] - b[0],
+        )
+        .forEach(
+          ([fret, indexes]) => {
+            if (indexes.length < 2) {
+              return;
+            }
+
+            const from = Math.min(
+              ...indexes,
             );
 
-      if (
-        progress instanceof HTMLElement
-      ) {
-        progress.style.width =
-          `${percentage}%`;
+            const to = Math.max(
+              ...indexes,
+            );
+
+            if (
+              to - from + 1 !==
+              indexes.length
+            ) {
+              return;
+            }
+
+            barres.push({
+              fret,
+              from,
+              to,
+              finger: 1,
+            });
+
+            indexes.forEach(
+              (index: number) => {
+                fingers[index] = 1;
+                barreIndexes.add(index);
+              },
+            );
+          },
+        );
+
+      let nextFinger = 2;
+
+      frets.forEach(
+        (fret: number, index: number) => {
+          if (
+            fret <= 0 ||
+            barreIndexes.has(index)
+          ) {
+            return;
+          }
+
+          fingers[index] = Math.min(
+            nextFinger++,
+            4,
+          );
+        },
+      );
+
+      return {
+        fingers,
+        barres,
+      };
+    }
+
+    function generatedShape(
+      parsed: ParsedChord,
+    ): ChordShape | null {
+      const cacheKey =
+        `${parsed.root}${parsed.quality}/${parsed.bass || ''}`;
+
+      if (GENERATED_SHAPE_CACHE.has(cacheKey)) {
+        const cached =
+          GENERATED_SHAPE_CACHE.get(cacheKey);
+
+        return cached
+          ? cloneShape(cached)
+          : null;
       }
 
-      if (
-        progressText instanceof HTMLElement
-      ) {
-        progressText.textContent =
-          `${Math.round(percentage)}%`;
+      const definition =
+        chordDefinition(parsed);
+
+      if (!definition) {
+        return null;
       }
+
+      const candidateFrets: number[] = [
+        -1,
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+      ];
+
+      let best: BestCandidate | null = null;
+
+      const chosen: number[] = [
+        -1,
+        -1,
+        -1,
+        -1,
+      ];
+
+      const walk = (index: number): void => {
+        if (index === 4) {
+          if (
+            !shapeIsValid(
+              chosen,
+              parsed,
+              definition,
+            )
+          ) {
+            return;
+          }
+
+          const score = scoreShape(
+            chosen,
+            parsed,
+          );
+
+          if (
+            !best ||
+            score < best.score
+          ) {
+            best = {
+              score,
+              frets: [...chosen],
+            };
+          }
+
+          return;
+        }
+
+        for (const fret of candidateFrets) {
+          chosen[index] = fret;
+          walk(index + 1);
+        }
+      };
+
+      walk(0);
+
+      if (!best) {
+        return null;
+      }
+
+      const candidate: BestCandidate =
+        best;
+
+      const {
+        fingers,
+        barres,
+      } = buildFingerAssignment(
+        candidate.frets,
+      );
+
+      const shape: ChordShape = {
+        frets: [...candidate.frets],
+        fingers,
+        barres,
+      };
+
+      GENERATED_SHAPE_CACHE.set(
+        cacheKey,
+        cloneShape(shape),
+      );
+
+      return shape;
+    }
+
+    function getChordShape(
+      chordName: string,
+    ): ChordShape | null {
+      const parsed =
+        parseChord(chordName);
+
+      if (!parsed) {
+        return null;
+      }
+
+      const directKey =
+        `${parsed.root}${parsed.quality}`;
+
+      if (
+        parsed.bassPc === null &&
+        SHAPES[directKey]
+      ) {
+        return cloneShape(
+          SHAPES[directKey],
+        );
+      }
+
+      return generatedShape(parsed);
+    }
+
+    function noteAt(
+      stringIndex: number,
+      fret: number,
+    ): string {
+      if (fret < 0) {
+        return '—';
+      }
+
+      return NOTES_SHARP[
+        (TUNING_PC[stringIndex] + fret) %
+          12
+      ];
+    }
+
+    function patternOf(
+      frets: number[],
+    ): string {
+      return frets
+        .map(fret =>
+          fret < 0
+            ? 'X'
+            : String(fret),
+        )
+        .join('');
+    }
+
+    function startingFret(
+      frets: number[],
+    ): number {
+      const positive =
+        frets.filter(
+          (fret: number) =>
+            fret > 0,
+        );
+
+      if (!positive.length) {
+        return 1;
+      }
+
+      const min = Math.min(
+        ...positive,
+      );
+
+      const max = Math.max(
+        ...positive,
+      );
+
+      if (max <= 4) {
+        return 1;
+      }
+
+      return min;
+    }
+
+    function escapeHtml(
+      value: string,
+    ): string {
+      return String(value)
+        .replaceAll(
+          '&',
+          '&amp;',
+        )
+        .replaceAll(
+          '<',
+          '&lt;',
+        )
+        .replaceAll(
+          '>',
+          '&gt;',
+        )
+        .replaceAll(
+          '"',
+          '&quot;',
+        )
+        .replaceAll(
+          "'",
+          '&#39;',
+        );
+    }
+
+    const transposeNote = (
+      note: string | null,
+      amount: number,
+      preferFlats = false,
+    ): string | null => {
+      const normalized =
+        normalizeRoot(note || '');
+
+      if (!normalized) {
+        return note;
+      }
+
+      const pc =
+        NOTE_PC[normalized];
+
+      const index =
+        (pc + amount + 1200) %
+        12;
+
+      return (
+        preferFlats
+          ? NOTES_FLAT
+          : NOTES_SHARP
+      )[index];
     };
 
+    const transposeChord = (
+      chord: string,
+      amount: number,
+      style: NotationStyle = 'auto',
+    ): string => {
+      const parsed =
+        parseChord(chord);
+
+      if (!parsed) {
+        return chord;
+      }
+
+      const useFlats =
+        style === 'flat'
+          ? true
+          : style === 'sharp'
+            ? false
+            : /[b♭]/.test(
+                parsed.original.split('/')[0],
+              );
+
+      const rootName =
+        transposeNote(
+          parsed.root,
+          amount,
+          useFlats,
+        );
+
+      const bassName =
+        parsed.bassPc === null
+          ? null
+          : transposeNote(
+              parsed.bass,
+              amount,
+              useFlats,
+            );
+
+      const bass =
+        bassName
+          ? `/${bassName}`
+          : '';
+
+      return `${rootName ?? ''}${parsed.quality}${bass}`;
+    };
+
+    function renderChordSvg(
+      chordName: string,
+      shape: ChordShape,
+    ): string {
+      const width = 260;
+      const height = 316;
+
+      const x = [
+        40,
+        100,
+        160,
+        220,
+      ];
+
+      const top = 72;
+      const gap = 47;
+      const bottom =
+        top + gap * 4;
+
+      const markerY = 48;
+      const radius = 14;
+
+      const firstFret =
+        startingFret(shape.frets);
+
+      const fretY = (
+        fret: number,
+      ): number =>
+        top +
+        (fret - firstFret + 0.5) *
+          gap;
+
+      const strings = x
+        .map(
+          (
+            sx: number,
+            i: number,
+          ) => `
+        <line
+          x1="${sx}"
+          y1="${top}"
+          x2="${sx}"
+          y2="${bottom}"
+          stroke="#5f645f"
+          stroke-width="${[
+            2.15,
+            1.9,
+            1.65,
+            1.4,
+          ][i]}"
+          stroke-linecap="round"
+        />
+      `,
+        )
+        .join('');
+
+      const frets =
+        Array.from(
+          { length: 5 },
+          (
+            _unknown: unknown,
+            i: number,
+          ) => {
+            const y =
+              top + i * gap;
+
+            const isNut =
+              firstFret === 1 &&
+              i === 0;
+
+            return `
+              <line
+                x1="40"
+                y1="${y}"
+                x2="220"
+                y2="${y}"
+                stroke="${
+                  isNut
+                    ? '#393d39'
+                    : '#adb2ad'
+                }"
+                stroke-width="${
+                  isNut
+                    ? 5
+                    : 1.55
+                }"
+                stroke-linecap="square"
+              />
+            `;
+          },
+        ).join('');
+
+      const openMuted =
+        shape.frets
+          .map(
+            (
+              fret: number,
+              i: number,
+            ) => {
+              if (fret === 0) {
+                return `
+                  <circle
+                    cx="${x[i]}"
+                    cy="${markerY}"
+                    r="8"
+                    fill="#fff"
+                    stroke="#555a55"
+                    stroke-width="1.35"
+                  />
+                `;
+              }
+
+              if (fret < 0) {
+                return `
+                  <line
+                    x1="${x[i] - 5}"
+                    y1="${markerY - 5}"
+                    x2="${x[i] + 5}"
+                    y2="${markerY + 5}"
+                    stroke="#555a55"
+                    stroke-width="1.6"
+                    stroke-linecap="round"
+                  />
+
+                  <line
+                    x1="${x[i] + 5}"
+                    y1="${markerY - 5}"
+                    x2="${x[i] - 5}"
+                    y2="${markerY + 5}"
+                    stroke="#555a55"
+                    stroke-width="1.6"
+                    stroke-linecap="round"
+                  />
+                `;
+              }
+
+              return '';
+            },
+          )
+          .join('');
+
+      const barreCovered = (
+        index: number,
+        fret: number,
+        finger: number,
+      ): boolean =>
+        shape.barres.some(
+          b =>
+            b.fret === fret &&
+            b.finger === finger &&
+            index >= b.from &&
+            index <= b.to,
+        );
+
+      const barres =
+        shape.barres
+          .map(
+            (barre: Barre) => {
+              if (
+                barre.fret <
+                  firstFret ||
+                barre.fret >
+                  firstFret + 3
+              ) {
+                return '';
+              }
+
+              const y =
+                fretY(barre.fret);
+
+              const x1 =
+                x[barre.from] -
+                radius;
+
+              const x2 =
+                x[barre.to] +
+                radius;
+
+              return `
+                <rect
+                  x="${x1}"
+                  y="${y - radius}"
+                  width="${x2 - x1}"
+                  height="${radius * 2}"
+                  rx="${radius}"
+                  fill="#353a35"
+                />
+
+                <text
+                  x="${(x1 + x2) / 2}"
+                  y="${y + 4.5}"
+                  text-anchor="middle"
+                  fill="#fff"
+                  font-family="Arial, Helvetica, sans-serif"
+                  font-size="11"
+                  font-weight="700"
+                >
+                  ${barre.finger}
+                </text>
+              `;
+            },
+          )
+          .join('');
+
+      const fingers =
+        shape.frets
+          .map(
+            (
+              fret: number,
+              i: number,
+            ) => {
+              if (
+                fret <= 0 ||
+                fret < firstFret ||
+                fret > firstFret + 3
+              ) {
+                return '';
+              }
+
+              const finger =
+                shape.fingers[i];
+
+              if (
+                finger &&
+                barreCovered(
+                  i,
+                  fret,
+                  finger,
+                )
+              ) {
+                return '';
+              }
+
+              const y =
+                fretY(fret);
+
+              return `
+                <circle
+                  cx="${x[i]}"
+                  cy="${y}"
+                  r="${radius}"
+                  fill="#353a35"
+                />
+
+                <text
+                  x="${x[i]}"
+                  y="${y + 4.5}"
+                  text-anchor="middle"
+                  fill="#fff"
+                  font-family="Arial, Helvetica, sans-serif"
+                  font-size="11"
+                  font-weight="700"
+                >
+                  ${finger || ''}
+                </text>
+              `;
+            },
+          )
+          .join('');
+
+      const notes =
+        shape.frets
+          .map(
+            (
+              fret: number,
+              i: number,
+            ) => `
+              <text
+                x="${x[i]}"
+                y="${bottom + 26}"
+                text-anchor="middle"
+                fill="#747a74"
+                font-family="Arial, Helvetica, sans-serif"
+                font-size="9"
+              >
+                ${noteAt(i, fret)}
+              </text>
+            `,
+          )
+          .join('');
+
+      return `
+        <svg
+          class="ukulele-chord-svg"
+          viewBox="0 0 ${width} ${height}"
+          role="img"
+          aria-label="${escapeHtml(
+            chordName,
+          )} ukulele chord diagram"
+        >
+          ${
+            firstFret > 1
+              ? `
+                <text
+                  x="230"
+                  y="66"
+                  fill="#858a85"
+                  font-family="Arial, Helvetica, sans-serif"
+                  font-size="8"
+                  font-weight="700"
+                >
+                  ${firstFret}fr
+                </text>
+              `
+              : ''
+          }
+
+          ${openMuted}
+          ${strings}
+          ${frets}
+          ${barres}
+          ${fingers}
+          ${notes}
+        </svg>
+      `;
+    }
+
+    function renderDialog(
+      chordName: string,
+    ): void {
+      if (
+        !(chordDialog instanceof HTMLDialogElement)
+      ) {
+        return;
+      }
+
+      stopScroll();
+
+      const shape =
+        getChordShape(chordName);
+
+      if (
+        dialogChordName instanceof HTMLElement
+      ) {
+        dialogChordName.textContent =
+          chordName;
+      }
+
+      if (!shape) {
+        if (
+          dialogCaption instanceof HTMLElement
+        ) {
+          dialogCaption.textContent =
+            'G C E A · unavailable';
+        }
+
+        if (
+          dialogDiagram instanceof HTMLElement
+        ) {
+          dialogDiagram.innerHTML = `
+            <div class="diagram-unavailable">
+              <strong>${escapeHtml(
+                chordName,
+              )}</strong>
+              <span>
+                Ukulele voicing belum tersedia.
+              </span>
+            </div>
+          `;
+        }
+
+        if (
+          dialogGuide instanceof HTMLElement
+        ) {
+          dialogGuide.innerHTML = '';
+        }
+      } else {
+        if (
+          dialogCaption instanceof HTMLElement
+        ) {
+          dialogCaption.textContent =
+            `G C E A · ${patternOf(
+              shape.frets,
+            )}`;
+        }
+
+        if (
+          dialogDiagram instanceof HTMLElement
+        ) {
+          dialogDiagram.innerHTML =
+            renderChordSvg(
+              chordName,
+              shape,
+            );
+        }
+
+        if (
+          dialogGuide instanceof HTMLElement
+        ) {
+          dialogGuide.innerHTML =
+            STRING_NAMES.map(
+              (
+                name: string,
+                i: number,
+              ) => `
+                <div class="dialog-string">
+                  <span class="dialog-string-name">
+                    ${name}
+                  </span>
+
+                  <span class="dialog-string-note">
+                    ${noteAt(
+                      i,
+                      shape.frets[i],
+                    )}
+                  </span>
+                </div>
+              `,
+            ).join('');
+        }
+      }
+
+      chordDialog.showModal();
+    }
+
+    root
+      .querySelectorAll('[data-chord]')
+      .forEach(button => {
+        if (
+          !(button instanceof HTMLButtonElement)
+        ) {
+          return;
+        }
+
+        button.addEventListener(
+          'click',
+          () => {
+            const chord =
+              button.getAttribute(
+                'data-chord',
+              );
+
+            if (chord) {
+              renderDialog(chord);
+            }
+          },
+        );
+      });
+
+    chordDialog?.addEventListener(
+      'click',
+      event => {
+        if (
+          event.target ===
+            chordDialog &&
+          chordDialog instanceof HTMLDialogElement
+        ) {
+          chordDialog.close();
+        }
+      },
+    );
+
+    chordDialogClose?.addEventListener(
+      'click',
+      () => {
+        if (
+          chordDialog instanceof HTMLDialogElement
+        ) {
+          chordDialog.close();
+        }
+      },
+    );
+
     /* =========================================================
-       PLAYER STATUS
+       PLAYER / AUTO-SCROLL
+
+       - One requestAnimationFrame loop.
+       - Floating scroll position prevents jitter.
+       - Instant scroll while auto-scroll is active.
+       - Wheel/swipe interrupts scrolling.
+       - Mobile controls never count as scroll gestures.
+       - No competing scroll timeout.
     ========================================================== */
 
-    const setStatus = (
-      active: boolean
-    ): void => {
+    let isScrolling = false;
+    let animationFrame: number | null = null;
+    let lastTimestamp = 0;
+    let scrollPosition = window.scrollY;
+    let scrollBehaviorBeforeAuto: string | null = null;
+    let transpose = 0;
+    let fontScale = 1;
+    let scrollSpeed = 1.00;
+    let speedIndex = 3;
 
+    const SPEEDS = [
+      0.50,
+      0.65,
+      0.80,
+      1.00,
+      1.25,
+      1.50,
+      1.75,
+      2.00,
+      2.50,
+      3.00,
+      3.50,
+      4.00,
+    ];
+
+    const FONT_MIN = 0.85;
+    const FONT_MAX = 1.35;
+    const FONT_STEP = 0.05;
+
+    const TRANSPOSE_MIN = -12;
+    const TRANSPOSE_MAX = 12;
+
+    const getMaxScroll = (): number =>
+      Math.max(
+        0,
+        document.documentElement.scrollHeight -
+          window.innerHeight,
+      );
+
+    const setStatus = (
+      active: boolean,
+    ): void => {
       if (
         statusText instanceof HTMLElement
       ) {
@@ -664,61 +2416,48 @@ const parsedLines = parseChordContent(content);
       ) {
         statusDot.classList.toggle(
           'is-active',
-          active
+          active,
         );
       }
     };
-
-    /* =========================================================
-       PLAY / PAUSE ICONS
-    ========================================================== */
 
     const setPlayIcons = (
-      active: boolean
+      active: boolean,
     ): void => {
+      [
+        playIcon,
+        mobilePlayIcon,
+      ].forEach(icon => {
+        if (
+          icon instanceof SVGElement
+        ) {
+          icon.classList.toggle(
+            'player-icon-hidden',
+            active,
+          );
+        }
+      });
 
-      if (
-        playIcon instanceof SVGElement
-      ) {
-        playIcon.classList.toggle(
-          'player-icon-hidden',
-          active
-        );
-      }
-
-      if (
-        pauseIcon instanceof SVGElement
-      ) {
-        pauseIcon.classList.toggle(
-          'player-icon-hidden',
-          !active
-        );
-      }
-
-      if (
-        mobilePlayIcon instanceof SVGElement
-      ) {
-        mobilePlayIcon.classList.toggle(
-          'player-icon-hidden',
-          active
-        );
-      }
-
-      if (
-        mobilePauseIcon instanceof SVGElement
-      ) {
-        mobilePauseIcon.classList.toggle(
-          'player-icon-hidden',
-          !active
-        );
-      }
+      [
+        pauseIcon,
+        mobilePauseIcon,
+      ].forEach(icon => {
+        if (
+          icon instanceof SVGElement
+        ) {
+          icon.classList.toggle(
+            'player-icon-hidden',
+            !active,
+          );
+        }
+      });
     };
 
-    /* =========================================================
-       PLAYER CONTROL UI
-    ========================================================== */
-
     const updateScrollButton = (): void => {
+      const statusLabel =
+        isScrolling
+          ? 'SCROLLING'
+          : 'READY';
 
       if (
         scrollLabel instanceof HTMLElement
@@ -729,46 +2468,156 @@ const parsedLines = parseChordContent(content);
             : 'Auto Scroll';
       }
 
-      setPlayIcons(
-        isScrolling
-      );
+      if (
+        scrollToggle instanceof HTMLButtonElement
+      ) {
+        scrollToggle.setAttribute(
+          'aria-pressed',
+          String(isScrolling),
+        );
 
-      setStatus(
-        isScrolling
-      );
+        scrollToggle.setAttribute(
+          'aria-label',
+          isScrolling
+            ? 'Jeda auto scroll'
+            : 'Mulai auto scroll',
+        );
+      }
+
+      if (
+        mobilePlay instanceof HTMLButtonElement
+      ) {
+        mobilePlay.setAttribute(
+          'aria-label',
+          isScrolling
+            ? 'Jeda auto scroll'
+            : 'Mulai auto scroll',
+        );
+
+        mobilePlay.setAttribute(
+          'aria-pressed',
+          String(isScrolling),
+        );
+      }
+
+      if (
+        mobilePlayer instanceof HTMLElement
+      ) {
+        mobilePlayer.classList.toggle(
+          'is-active',
+          isScrolling,
+        );
+      }
+
+      if (
+        mobileStatus instanceof HTMLElement
+      ) {
+        mobileStatus.textContent =
+          statusLabel;
+      }
+
+      setPlayIcons(isScrolling);
+      setStatus(isScrolling);
     };
 
-    /* =========================================================
-       STOP SCROLL
-    ========================================================== */
+    const updateProgress = (): void => {
+      const max = getMaxScroll();
+
+      const current = Math.min(
+        max,
+        Math.max(
+          0,
+          window.scrollY,
+        ),
+      );
+
+      const percentage =
+        max <= 0
+          ? 0
+          : Math.min(
+              100,
+              Math.max(
+                0,
+                (current / max) * 100,
+              ),
+            );
+
+      if (
+        progress instanceof HTMLElement
+      ) {
+        progress.style.width =
+          `${percentage}%`;
+      }
+
+      if (
+        progressText instanceof HTMLElement
+      ) {
+        progressText.textContent =
+          `${Math.round(
+            percentage,
+          )}%`;
+      }
+
+      if (
+        mobileProgress instanceof HTMLElement
+      ) {
+        mobileProgress.style.width =
+          `${percentage}%`;
+      }
+    };
+
+    const lockScrollBehavior = (): void => {
+      if (
+        scrollBehaviorBeforeAuto ===
+        null
+      ) {
+        scrollBehaviorBeforeAuto =
+          document.documentElement.style
+            .scrollBehavior;
+
+        document.documentElement.style
+          .scrollBehavior = 'auto';
+      }
+    };
+
+    const restoreScrollBehavior = (): void => {
+      if (
+        scrollBehaviorBeforeAuto !==
+        null
+      ) {
+        document.documentElement.style
+          .scrollBehavior =
+          scrollBehaviorBeforeAuto;
+
+        scrollBehaviorBeforeAuto =
+          null;
+      }
+    };
 
     const stopScroll = (): void => {
-
       isScrolling = false;
 
       if (
         animationFrame !== null
       ) {
         cancelAnimationFrame(
-          animationFrame
+          animationFrame,
         );
 
         animationFrame = null;
       }
 
       lastTimestamp = 0;
+      scrollPosition =
+        window.scrollY;
 
+      restoreScrollBehavior();
       updateScrollButton();
     };
 
-    /* =========================================================
-       AUTO SCROLL FRAME
-    ========================================================== */
-
     const scrollFrame = (
-      timestamp: number
+      timestamp: number,
     ): void => {
-
       if (!isScrolling) {
         return;
       }
@@ -776,89 +2625,97 @@ const parsedLines = parseChordContent(content);
       if (!lastTimestamp) {
         lastTimestamp =
           timestamp;
+
+        scrollPosition =
+          window.scrollY;
       }
 
-      const delta =
-        Math.min(
-          50,
+      const deltaMs = Math.min(
+        100,
+        Math.max(
+          0,
           timestamp -
-            lastTimestamp
-        );
+            lastTimestamp,
+        ),
+      );
 
       lastTimestamp =
         timestamp;
 
-      /*
-       * Default 1.10× ≈ 34px/s.
-       *
-       * Maximum 8× ≈ 200px/s.
-       *
-       * Cocok dari slow-reading sampai fast skip.
-       */
-
       const pixelsPerSecond =
-        8 +
+        10 +
         scrollSpeed * 24;
 
-      const movement =
-        (
-          pixelsPerSecond *
-          delta
-        ) / 1000;
+      const maxScroll =
+        getMaxScroll();
 
-      window.scrollBy({
-        top: movement,
-        behavior: 'auto'
-      });
+      if (maxScroll <= 0) {
+        stopScroll();
+        return;
+      }
 
-      const max =
-        getScrollableHeight();
+      scrollPosition =
+        Math.min(
+          maxScroll,
+          scrollPosition +
+            (pixelsPerSecond *
+              deltaMs) /
+              1000,
+        );
+
+      window.scrollTo(
+        0,
+        scrollPosition,
+      );
 
       if (
-        max <= 0 ||
-        window.scrollY >=
-          max - 2
+        scrollPosition >=
+        maxScroll - 0.5
       ) {
+        window.scrollTo(
+          0,
+          maxScroll,
+        );
+
         stopScroll();
         return;
       }
 
       animationFrame =
         requestAnimationFrame(
-          scrollFrame
+          scrollFrame,
         );
     };
 
-    /* =========================================================
-       START
-    ========================================================== */
-
     const startScroll = (): void => {
+      const maxScroll =
+        getMaxScroll();
 
-      if (
-        getScrollableHeight() <= 0
-      ) {
+      if (maxScroll <= 0) {
+        updateProgress();
         return;
       }
 
-      isScrolling = true;
+      if (isScrolling) {
+        return;
+      }
 
+      lockScrollBehavior();
+
+      isScrolling = true;
+      scrollPosition =
+        window.scrollY;
       lastTimestamp = 0;
 
       updateScrollButton();
 
       animationFrame =
         requestAnimationFrame(
-          scrollFrame
+          scrollFrame,
         );
     };
 
-    /* =========================================================
-       TOGGLE
-    ========================================================== */
-
     const toggleScroll = (): void => {
-
       if (isScrolling) {
         stopScroll();
       } else {
@@ -866,12 +2723,7 @@ const parsedLines = parseChordContent(content);
       }
     };
 
-    /* =========================================================
-       SPEED
-    ========================================================== */
-
     const updateSpeed = (): void => {
-
       const value =
         `${scrollSpeed.toFixed(2)}×`;
 
@@ -888,46 +2740,79 @@ const parsedLines = parseChordContent(content);
         mobileSpeed.textContent =
           value;
       }
+
+      if (
+        mobileSpeedDown instanceof HTMLButtonElement
+      ) {
+        mobileSpeedDown.disabled =
+          speedIndex <= 0;
+      }
+
+      if (
+        mobileSpeedUp instanceof HTMLButtonElement
+      ) {
+        mobileSpeedUp.disabled =
+          speedIndex >=
+          SPEEDS.length - 1;
+      }
+
+      const desktopDown =
+        root.querySelector(
+          '[data-speed-down]',
+        );
+
+      const desktopUp =
+        root.querySelector(
+          '[data-speed-up]',
+        );
+
+      if (
+        desktopDown instanceof HTMLButtonElement
+      ) {
+        desktopDown.disabled =
+          speedIndex <= 0;
+      }
+
+      if (
+        desktopUp instanceof HTMLButtonElement
+      ) {
+        desktopUp.disabled =
+          speedIndex >=
+          SPEEDS.length - 1;
+      }
     };
 
     const increaseSpeed = (): void => {
-
       if (
-        speedIndex <
+        speedIndex >=
         SPEEDS.length - 1
       ) {
-        speedIndex += 1;
-
-        scrollSpeed =
-          SPEEDS[speedIndex];
+        return;
       }
+
+      speedIndex += 1;
+      scrollSpeed =
+        SPEEDS[speedIndex];
 
       updateSpeed();
     };
 
     const decreaseSpeed = (): void => {
-
-      if (
-        speedIndex > 0
-      ) {
-        speedIndex -= 1;
-
-        scrollSpeed =
-          SPEEDS[speedIndex];
+      if (speedIndex <= 0) {
+        return;
       }
+
+      speedIndex -= 1;
+      scrollSpeed =
+        SPEEDS[speedIndex];
 
       updateSpeed();
     };
 
-    /* =========================================================
-       FONT
-    ========================================================== */
-
     const updateFont = (): void => {
-
       root.style.setProperty(
         '--lyrics-scale',
-        String(fontScale)
+        String(fontScale),
       );
 
       if (
@@ -935,373 +2820,275 @@ const parsedLines = parseChordContent(content);
       ) {
         fontValue.textContent =
           `${Math.round(
-            fontScale * 100
+            fontScale * 100,
           )}%`;
       }
     };
 
     const increaseFont = (): void => {
-
-      fontScale =
-        Math.min(
-          FONT_MAX,
-          Number(
-            (
-              fontScale +
-              FONT_STEP
-            ).toFixed(2)
-          )
-        );
+      fontScale = Math.min(
+        FONT_MAX,
+        Number(
+          (
+            fontScale +
+            FONT_STEP
+          ).toFixed(2),
+        ),
+      );
 
       updateFont();
+      requestAnimationFrame(
+        updateProgress,
+      );
     };
 
     const decreaseFont = (): void => {
-
-      fontScale =
-        Math.max(
-          FONT_MIN,
-          Number(
-            (
-              fontScale -
-              FONT_STEP
-            ).toFixed(2)
-          )
-        );
+      fontScale = Math.max(
+        FONT_MIN,
+        Number(
+          (
+            fontScale -
+            FONT_STEP
+          ).toFixed(2),
+        ),
+      );
 
       updateFont();
+      requestAnimationFrame(
+        updateProgress,
+      );
     };
 
-    /* =========================================================
-       TRANSPOSE CHORD
-    ========================================================== */
+    const notationStyleForKey = (
+      key: string,
+    ): NotationStyle => {
+      const source =
+        String(key || '').trim();
 
-    const transposeChord = (
-      chord: string,
-      amount: number
-    ): string => {
-
-      /*
-       * Supported:
-       *
-       * C
-       * Cm
-       * C7
-       * Cmaj7
-       * C#m7
-       * Asus4
-       * F#dim
-       * Bbmaj7
-       * C/G
-       * Am7/G
-       */
-
-      const match =
-        chord.match(
-          /^([A-G](?:#|b)?)([^/]*?)(?:\/([A-G](?:#|b)?))?$/
-        );
-
-      if (!match) {
-        return chord;
+      if (!source) {
+        return 'auto';
       }
 
-      const root =
-        normalizeNote(
-          match[1]
+      const rootMatch =
+        source.match(
+          /^([A-Ga-g](?:#|b|♯|♭)?)/,
         );
 
-      const quality =
-        match[2] || '';
-
-      const bass =
-        match[3]
-          ? normalizeNote(
-              match[3]
-            )
-          : null;
-
-      const moveNote = (
-        note: string
-      ): string => {
-
-        const index =
-          notes.indexOf(
-            normalizeNote(note)
-          );
-
-        if (index < 0) {
-          return note;
-        }
-
-        return notes[
-          (
-            index +
-            amount +
-            1200
-          ) % 12
-        ];
-      };
-
-      const nextRoot =
-        moveNote(root);
-
-      const nextBass =
-        bass
-          ? moveNote(bass)
+      const sourceRoot =
+        rootMatch
+          ? rootMatch[1]
+              .replace(
+                '♯',
+                '#',
+              )
+              .replace(
+                '♭',
+                'b',
+              )
           : '';
 
-      return (
-        `${nextRoot}` +
-        `${quality}` +
-        `${
-          nextBass
-            ? `/${nextBass}`
-            : ''
-        }`
-      );
-    };
+      if (/[b♭]/.test(
+        sourceRoot,
+      )) {
+        return 'flat';
+      }
 
-    /* =========================================================
-       UPDATE TRANSPOSE
-    ========================================================== */
-
-    const updateTranspose = (): void => {
-
-      chordItems.forEach(
-        (item) => {
-
-          if (
-            !(item instanceof HTMLElement)
-          ) {
-            return;
-          }
-
-          const original =
-            item.getAttribute(
-              'data-original-chord'
-            ) || '';
-
-          const value =
-            transposeChord(
-              original,
-              transpose
-            );
-
-          const chordName =
-            item.querySelector(
-              '.chord-name'
-            );
-
-          if (
-            chordName instanceof HTMLElement
-          ) {
-            chordName.textContent =
-              value;
-          }
-        }
-      );
-
-      /*
-       * Header key ikut transpose.
-       */
-
-      const originalKey =
-        root.getAttribute(
-          'data-original-key'
-        );
+      if (/[#♯]/.test(
+        sourceRoot,
+      )) {
+        return 'sharp';
+      }
 
       if (
-        originalKey &&
-        currentKey instanceof HTMLElement
+        sourceRoot.toUpperCase() ===
+        'F'
       ) {
-        currentKey.textContent =
-          transposeChord(
+        return 'flat';
+      }
+
+      return 'auto';
+    };
+
+    const inferSongNotationStyle =
+      (): NotationStyle => {
+        const originalKey =
+          root.getAttribute(
+            'data-original-key',
+          ) || '';
+
+        const fromKey =
+          notationStyleForKey(
             originalKey,
-            transpose
           );
-      }
-
-      if (
-        transposeValue instanceof HTMLElement
-      ) {
-        if (transpose === 0) {
-          transposeValue.textContent =
-            '0';
-        } else if (
-          transpose > 0
-        ) {
-          transposeValue.textContent =
-            `+${transpose}`;
-        } else {
-          transposeValue.textContent =
-            String(transpose);
-        }
-      }
-    };
-
-    /* =========================================================
-       CHANGE TRANSPOSE
-    ========================================================== */
-
-    const changeTranspose = (
-      amount: number
-    ): void => {
-
-      transpose += amount;
-
-      /*
-       * Circular semitone range.
-       */
-
-      if (
-        transpose >
-        TRANSPOSE_MAX
-      ) {
-        transpose =
-          TRANSPOSE_MIN;
-      }
-
-      if (
-        transpose <
-        TRANSPOSE_MIN
-      ) {
-        transpose =
-          TRANSPOSE_MAX;
-      }
-
-      updateTranspose();
-    };
-
-    /* =========================================================
-       GO TO SONG TOP
-    ========================================================== */
-
-    const scrollToLyricsTop =
-      (): void => {
-
-        stopScroll();
-
-        let target:
-          Element | null =
-          lyrics;
 
         if (
-          !(target instanceof HTMLElement)
+          fromKey !== 'auto'
         ) {
-          target =
-            root.querySelector(
-              '.lyrics-container'
-            );
+          return fromKey;
+        }
+
+        const originalChords =
+          Array.from(
+            root.querySelectorAll(
+              '[data-original-chord]',
+            ),
+          ).map(
+            (item: Element) =>
+              item.getAttribute(
+                'data-original-chord',
+              ) || '',
+          );
+
+        if (
+          originalChords.some(
+            chord =>
+              /[b♭]/.test(chord),
+          )
+        ) {
+          return 'flat';
         }
 
         if (
-          !(target instanceof HTMLElement)
+          originalChords.some(
+            chord =>
+              /[#♯]/.test(chord),
+          )
         ) {
-          window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-          });
-
-          return;
+          return 'sharp';
         }
 
-        const rect =
-          target.getBoundingClientRect();
-
-        /*
-         * Sticky player/header offset.
-         */
-
-        const offset =
-          105;
-
-        const destination =
-          Math.max(
-            0,
-            window.scrollY +
-              rect.top -
-              offset
-          );
-
-        window.scrollTo({
-          top: destination,
-          behavior: 'smooth'
-        });
+        return 'sharp';
       };
 
-    /* =========================================================
-       RESET PLAYER
-    ========================================================== */
+    const transposeStyle =
+      inferSongNotationStyle();
 
-    const resetPlayer = (): void => {
+    const updateTransposeButtons =
+      (): void => {
+        const down =
+          root.querySelector(
+            '[data-transpose-down]',
+          );
 
-      stopScroll();
+        const up =
+          root.querySelector(
+            '[data-transpose-up]',
+          );
 
-      /*
-       * Restore speed.
-       */
+        if (
+          down instanceof HTMLButtonElement
+        ) {
+          down.disabled =
+            transpose <=
+            TRANSPOSE_MIN;
+        }
 
-      speedIndex = 3;
+        if (
+          up instanceof HTMLButtonElement
+        ) {
+          up.disabled =
+            transpose >=
+            TRANSPOSE_MAX;
+        }
+      };
 
-      scrollSpeed =
-        SPEEDS[speedIndex];
+    const updateTranspose =
+      (): void => {
+        root
+          .querySelectorAll(
+            '[data-original-chord]',
+          )
+          .forEach(item => {
+            if (
+              !(item instanceof HTMLElement)
+            ) {
+              return;
+            }
 
-      /*
-       * Restore transpose.
-       */
+            const original =
+              item.getAttribute(
+                'data-original-chord',
+              ) || '';
 
-      transpose = 0;
+            const next =
+              transposeChord(
+                original,
+                transpose,
+                transposeStyle,
+              );
 
-      /*
-       * Restore text size.
-       */
+            item.setAttribute(
+              'data-chord',
+              next,
+            );
 
-      fontScale = 1;
+            const name =
+              item.querySelector(
+                '.chord-name',
+              );
 
-      /*
-       * Restore modes.
-       */
+            if (
+              name instanceof HTMLElement
+            ) {
+              name.textContent =
+                next;
+            }
+          });
 
-      root.classList.remove(
-        'focus-mode'
-      );
+        const originalKey =
+          root.getAttribute(
+            'data-original-key',
+          );
 
-      root.classList.remove(
-        'ukulele-mode'
-      );
+        if (
+          originalKey &&
+          currentKey instanceof HTMLElement
+        ) {
+          currentKey.textContent =
+            transposeChord(
+              originalKey,
+              transpose,
+              transposeStyle,
+            );
+        }
 
-      if (
-        focusToggle instanceof HTMLButtonElement
-      ) {
-        focusToggle.setAttribute(
-          'aria-label',
-          'Aktifkan mode fokus'
+        if (
+          transposeValue instanceof HTMLElement
+        ) {
+          transposeValue.textContent =
+            transpose === 0
+              ? '0'
+              : transpose > 0
+                ? `+${transpose}`
+                : String(transpose);
+        }
+
+        updateTransposeButtons();
+      };
+
+    const changeTranspose = (
+      amount: number,
+    ): void => {
+      transpose =
+        Math.max(
+          TRANSPOSE_MIN,
+          Math.min(
+            TRANSPOSE_MAX,
+            transpose + amount,
+          ),
         );
-      }
 
-      if (
-        ukuleleToggle instanceof HTMLButtonElement
-      ) {
-        ukuleleToggle.setAttribute(
-          'aria-pressed',
-          'false'
-        );
-      }
-
-      updateSpeed();
-      updateFont();
       updateTranspose();
-
-      /*
-       * Reset position ke awal lagu.
-       */
-
-      scrollToLyricsTop();
     };
 
-    /* =========================================================
-       FOCUS MODE
-    ========================================================== */
+    const scrollToTop = (): void => {
+      stopScroll();
+
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth',
+      });
+    };
 
     if (
       focusToggle instanceof HTMLButtonElement
@@ -1309,25 +3096,12 @@ const parsedLines = parseChordContent(content);
       focusToggle.addEventListener(
         'click',
         () => {
-
-          const active =
-            root.classList.toggle(
-              'focus-mode'
-            );
-
-          focusToggle.setAttribute(
-            'aria-label',
-            active
-              ? 'Keluar dari mode fokus'
-              : 'Aktifkan mode fokus'
+          root.classList.toggle(
+            'focus-mode',
           );
-        }
+        },
       );
     }
-
-    /* =========================================================
-       UKULELE MODE
-    ========================================================== */
 
     if (
       ukuleleToggle instanceof HTMLButtonElement
@@ -1335,187 +3109,325 @@ const parsedLines = parseChordContent(content);
       ukuleleToggle.addEventListener(
         'click',
         () => {
-
           const active =
             root.classList.toggle(
-              'ukulele-mode'
+              'ukulele-mode',
             );
 
           ukuleleToggle.setAttribute(
             'aria-pressed',
-            String(active)
+            String(active),
           );
-        }
+        },
       );
     }
 
-    /* =========================================================
-       MAIN CONTROLS
-    ========================================================== */
+    scrollToggle?.addEventListener(
+      'click',
+      toggleScroll,
+    );
 
-    if (
-      scrollToggle instanceof HTMLButtonElement
-    ) {
-      scrollToggle.addEventListener(
+    mobilePlay?.addEventListener(
+      'click',
+      toggleScroll,
+    );
+
+    root
+      .querySelector(
+        '[data-speed-up]',
+      )
+      ?.addEventListener(
         'click',
-        toggleScroll
+        increaseSpeed,
       );
-    }
 
-    if (
-      mobilePlay instanceof HTMLButtonElement
-    ) {
-      mobilePlay.addEventListener(
+    root
+      .querySelector(
+        '[data-speed-down]',
+      )
+      ?.addEventListener(
         'click',
-        toggleScroll
-      );
-    }
-
-    const speedUp =
-      root.querySelector(
-        '[data-speed-up]'
+        decreaseSpeed,
       );
 
-    if (
-      speedUp instanceof HTMLButtonElement
-    ) {
-      speedUp.addEventListener(
+    mobileSpeedUp?.addEventListener(
+      'click',
+      increaseSpeed,
+    );
+
+    mobileSpeedDown?.addEventListener(
+      'click',
+      decreaseSpeed,
+    );
+
+    root
+      .querySelector(
+        '[data-scroll-top]',
+      )
+      ?.addEventListener(
         'click',
-        increaseSpeed
-      );
-    }
-
-    const speedDown =
-      root.querySelector(
-        '[data-speed-down]'
+        scrollToTop,
       );
 
-    if (
-      speedDown instanceof HTMLButtonElement
-    ) {
-      speedDown.addEventListener(
+    root
+      .querySelector(
+        '[data-reset]',
+      )
+      ?.addEventListener(
         'click',
-        decreaseSpeed
-      );
-    }
+        () => {
+          stopScroll();
 
-    const mobileSpeedUp =
-      root.querySelector(
-        '[data-mobile-speed-up]'
-      );
+          speedIndex = 3;
+          scrollSpeed =
+            SPEEDS[speedIndex];
 
-    if (
-      mobileSpeedUp instanceof HTMLButtonElement
-    ) {
-      mobileSpeedUp.addEventListener(
-        'click',
-        increaseSpeed
-      );
-    }
+          transpose = 0;
+          fontScale = 1;
 
-    const topButton =
-      root.querySelector(
-        '[data-scroll-top]'
-      );
+          root.classList.remove(
+            'focus-mode',
+            'ukulele-mode',
+          );
 
-    if (
-      topButton instanceof HTMLButtonElement
-    ) {
-      topButton.addEventListener(
-        'click',
-        scrollToLyricsTop
-      );
-    }
+          if (
+            ukuleleToggle instanceof HTMLButtonElement
+          ) {
+            ukuleleToggle.setAttribute(
+              'aria-pressed',
+              'false',
+            );
+          }
 
-    const resetButton =
-      root.querySelector(
-        '[data-reset]'
+          updateSpeed();
+          updateFont();
+          updateTranspose();
+          scrollToTop();
+        },
       );
 
-    if (
-      resetButton instanceof HTMLButtonElement
-    ) {
-      resetButton.addEventListener(
-        'click',
-        resetPlayer
-      );
-    }
-
-    /* =========================================================
-       TRANSPOSE BUTTONS
-    ========================================================== */
-
-    const transposeUp =
-      root.querySelector(
-        '[data-transpose-up]'
-      );
-
-    if (
-      transposeUp instanceof HTMLButtonElement
-    ) {
-      transposeUp.addEventListener(
+    root
+      .querySelector(
+        '[data-transpose-up]',
+      )
+      ?.addEventListener(
         'click',
         () => {
           changeTranspose(1);
-        }
-      );
-    }
-
-    const transposeDown =
-      root.querySelector(
-        '[data-transpose-down]'
+        },
       );
 
-    if (
-      transposeDown instanceof HTMLButtonElement
-    ) {
-      transposeDown.addEventListener(
+    root
+      .querySelector(
+        '[data-transpose-down]',
+      )
+      ?.addEventListener(
         'click',
         () => {
           changeTranspose(-1);
+        },
+      );
+
+    root
+      .querySelector(
+        '[data-font-up]',
+      )
+      ?.addEventListener(
+        'click',
+        increaseFont,
+      );
+
+    root
+      .querySelector(
+        '[data-font-down]',
+      )
+      ?.addEventListener(
+        'click',
+        decreaseFont,
+      );
+
+    const shouldIgnoreUserScrollIntent = (
+      event: Event,
+    ): boolean => {
+      const target =
+        event.target;
+
+      if (
+        !(target instanceof Element)
+      ) {
+        return false;
+      }
+
+      return Boolean(
+        target.closest(
+          '[data-player]',
+        ) ||
+        target.closest(
+          '[data-mobile-player]',
+        ) ||
+        target.closest(
+          '.chord-dialog',
+        ),
+      );
+    };
+
+    let touchStartY: number | null =
+      null;
+
+    const handleWheelIntent = (
+      event: WheelEvent,
+    ): void => {
+      if (
+        !isScrolling ||
+        shouldIgnoreUserScrollIntent(
+          event,
+        )
+      ) {
+        return;
+      }
+
+      if (
+        Math.abs(event.deltaY) < 1
+      ) {
+        return;
+      }
+
+      stopScroll();
+    };
+
+    const handleTouchStart = (
+      event: TouchEvent,
+    ): void => {
+      if (
+        !isScrolling ||
+        shouldIgnoreUserScrollIntent(
+          event,
+        )
+      ) {
+        touchStartY = null;
+        return;
+      }
+
+      touchStartY =
+        event.touches[0]
+          ?.clientY ?? null;
+    };
+
+    const handleTouchMove = (
+      event: TouchEvent,
+    ): void => {
+      if (
+        !isScrolling ||
+        touchStartY === null ||
+        shouldIgnoreUserScrollIntent(
+          event,
+        )
+      ) {
+        return;
+      }
+
+      const currentY =
+        event.touches[0]
+          ?.clientY ??
+        touchStartY;
+
+      if (
+        Math.abs(
+          currentY -
+            touchStartY,
+        ) < 8
+      ) {
+        return;
+      }
+
+      touchStartY = null;
+      stopScroll();
+    };
+
+    const handleTouchEnd =
+      (): void => {
+        touchStartY = null;
+      };
+
+    window.addEventListener(
+      'wheel',
+      handleWheelIntent,
+      {
+        passive: true,
+      },
+    );
+
+    window.addEventListener(
+      'touchstart',
+      handleTouchStart,
+      {
+        passive: true,
+      },
+    );
+
+    window.addEventListener(
+      'touchmove',
+      handleTouchMove,
+      {
+        passive: true,
+      },
+    );
+
+    window.addEventListener(
+      'touchend',
+      handleTouchEnd,
+      {
+        passive: true,
+      },
+    );
+
+    window.addEventListener(
+      'scroll',
+      updateProgress,
+      {
+        passive: true,
+      },
+    );
+
+    window.addEventListener(
+      'resize',
+      updateProgress,
+      {
+        passive: true,
+      },
+    );
+
+    document.addEventListener(
+      'visibilitychange',
+      () => {
+        if (
+          document.hidden &&
+          isScrolling
+        ) {
+          stopScroll();
         }
-      );
-    }
+      },
+    );
 
-    /* =========================================================
-       FONT BUTTONS
-    ========================================================== */
-
-    const fontUp =
-      root.querySelector(
-        '[data-font-up]'
-      );
-
-    if (
-      fontUp instanceof HTMLButtonElement
-    ) {
-      fontUp.addEventListener(
-        'click',
-        increaseFont
-      );
-    }
-
-    const fontDown =
-      root.querySelector(
-        '[data-font-down]'
-      );
-
-    if (
-      fontDown instanceof HTMLButtonElement
-    ) {
-      fontDown.addEventListener(
-        'click',
-        decreaseFont
-      );
-    }
-
-    /* =========================================================
-       KEYBOARD SHORTCUTS
-    ========================================================== */
+    chordDialog?.addEventListener(
+      'close',
+      () => {
+        updateProgress();
+      },
+    );
 
     window.addEventListener(
       'keydown',
       (event: KeyboardEvent) => {
+        if (
+          event.key === 'Escape' &&
+          chordDialog instanceof HTMLDialogElement &&
+          chordDialog.open
+        ) {
+          event.preventDefault();
+          chordDialog.close();
+          return;
+        }
 
         const target =
           event.target;
@@ -1529,183 +3441,65 @@ const parsedLines = parseChordContent(content);
           return;
         }
 
-        /*
-         * Space
-         */
-
-        if (
-          event.code === 'Space'
-        ) {
+        if (event.code === 'Space') {
           event.preventDefault();
-
           toggleScroll();
-
-          return;
-        }
-
-        /*
-         * Manual movement.
-         */
-
-        if (
+        } else if (
           event.key === 'ArrowDown'
         ) {
           event.preventDefault();
-
           stopScroll();
 
           window.scrollBy({
             top: 140,
-            behavior: 'smooth'
+            behavior: 'smooth',
           });
-
-          return;
-        }
-
-        if (
+        } else if (
           event.key === 'ArrowUp'
         ) {
           event.preventDefault();
-
           stopScroll();
 
           window.scrollBy({
             top: -140,
-            behavior: 'smooth'
+            behavior: 'smooth',
           });
-
-          return;
-        }
-
-        /*
-         * Font
-         */
-
-        if (
+        } else if (
           event.key === '+'
         ) {
           increaseFont();
-          return;
-        }
-
-        if (
+        } else if (
           event.key === '-'
         ) {
           decreaseFont();
-          return;
-        }
-
-        /*
-         * Speed
-         */
-
-        if (
+        } else if (
           event.key === ']'
         ) {
           increaseSpeed();
-          return;
-        }
-
-        if (
+        } else if (
           event.key === '['
         ) {
           decreaseSpeed();
-          return;
-        }
-
-        /*
-         * Transpose.
-         *
-         * T       = +1
-         * Shift T = -1
-         */
-
-        if (
+        } else if (
           event.key.toLowerCase() === 't'
         ) {
           changeTranspose(
             event.shiftKey
               ? -1
-              : 1
+              : 1,
           );
-
-          return;
-        }
-
-        /*
-         * Reset.
-         */
-
-        if (
+        } else if (
           event.key.toLowerCase() === 'r'
         ) {
-          resetPlayer();
-          return;
-        }
-
-        /*
-         * Home.
-         */
-
-        if (
+          scrollToTop();
+        } else if (
           event.key === 'Home'
         ) {
           event.preventDefault();
-
-          scrollToLyricsTop();
+          scrollToTop();
         }
-      }
-    );
-
-    /* =========================================================
-       SCROLL LISTENER
-    ========================================================== */
-
-    window.addEventListener(
-      'scroll',
-      () => {
-
-        updateProgress();
-
-        if (
-          scrollTimeout !== null
-        ) {
-          clearTimeout(
-            scrollTimeout
-          );
-        }
-
-        scrollTimeout =
-          setTimeout(
-            () => {
-
-              const max =
-                getScrollableHeight();
-
-              const nearBottom =
-                max <= 0 ||
-                window.scrollY >=
-                  max - 10;
-
-              if (
-                nearBottom &&
-                isScrolling
-              ) {
-                stopScroll();
-              }
-
-            },
-            120
-          );
       },
-      {
-        passive: true
-      }
     );
-
-    /* =========================================================
-       INITIAL STATE
-    ========================================================== */
 
     updateScrollButton();
     updateSpeed();
@@ -1718,1082 +3512,863 @@ const parsedLines = parseChordContent(content);
 <style>
   .song-detail {
     --lyrics-scale: 1;
-
     --black: #0a0a0a;
-    --ink: #171717;
-    --muted: #737373;
-    --soft: #a3a3a3;
-    --line: #e5e5e5;
-    --surface: #fafafa;
+    --ink: #151515;
+    --muted: #6f6f6f;
+    --soft: #969b96;
+    --line: #e4e6e2;
+    --surface: #f6f7f5;
     --white: #ffffff;
-
+    --accent: #16834f;
     width: 100%;
-    max-width: 900px;
-
+    max-width: 980px;
     margin: 0 auto;
-
     padding:
-      48px
-      28px
-      140px;
-
+      18px
+      14px
+      calc(132px + env(safe-area-inset-bottom));
     color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
-
-  /* =========================================================
-     VISIBILITY
-  ========================================================== */
 
   .player-icon-hidden {
     display: none;
   }
 
-  /* =========================================================
-     HEADER
-  ========================================================== */
-
-  .song-header {
-    display: flex;
-
-    align-items: flex-start;
-    justify-content: space-between;
-
-    gap: 32px;
-
-    margin-bottom: 42px;
+  body:has(.chord-dialog[open]) {
+    overflow: hidden;
   }
 
-  .song-header-main {
+  button,
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .song-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .song-heading {
     min-width: 0;
   }
 
   .song-eyebrow {
     display: flex;
-
     align-items: center;
-
-    gap: 10px;
-
-    margin-bottom: 18px;
-
-    color: var(--muted);
-
-    font-size: 10px;
-    font-weight: 800;
-
-    letter-spacing: 0.18em;
+    gap: 8px;
+    margin-bottom: 9px;
+    color: var(--soft);
+    font: 800 7px ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+    letter-spacing: .16em;
   }
 
   .eyebrow-line {
-    width: 20px;
+    width: 16px;
     height: 1px;
+    flex: 0 0 auto;
+    background: var(--black);
+  }
 
-    background:
-      var(--black);
+  .song-kicker {
+    margin-bottom: 10px;
+    color: var(--muted);
+    font: 800 7px ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+    letter-spacing: .16em;
   }
 
   .song-header h1 {
-    max-width: 780px;
-
+    max-width: 100%;
     margin: 0;
-
     color: var(--black);
-
-    font-size:
-      clamp(
-        2.2rem,
-        6vw,
-        4.2rem
-      );
-
-    line-height: 0.98;
-
-    font-weight: 850;
-
-    letter-spacing: -0.055em;
+    font-size: clamp(2.35rem, 12vw, 4rem);
+    font-weight: 900;
+    line-height: .9;
+    letter-spacing: -.065em;
+    overflow-wrap: anywhere;
   }
 
   .song-meta {
     display: flex;
-
     align-items: center;
-
     flex-wrap: wrap;
-
-    gap: 14px;
-
-    margin-top: 20px;
+    gap: 9px;
+    margin-top: 14px;
   }
 
   .artist {
     color: var(--muted);
-
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 500;
   }
 
   .meta-separator {
     width: 3px;
     height: 3px;
-
-    border-radius: 999px;
-
-    background:
-      var(--soft);
+    border-radius: 50%;
+    background: var(--soft);
   }
 
   .song-key {
     display: inline-flex;
-
-    align-items: center;
-
-    gap: 8px;
-
-    color: var(--ink);
-
-    font-family:
-      ui-monospace,
-      SFMono-Regular,
-      Menlo,
-      Monaco,
-      Consolas,
-      monospace;
-
-    font-size: 12px;
-    font-weight: 700;
+    align-items: baseline;
+    gap: 6px;
+    font: 11px ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
   }
 
-  .key-label {
+  .song-key .key-label {
     color: var(--soft);
-
-    font-size: 9px;
-
-    letter-spacing: 0.12em;
+    font-size: 7px;
+    font-weight: 800;
+    letter-spacing: .14em;
   }
 
-  .icon-button {
+  .song-key strong {
+    color: var(--black);
+    font-weight: 850;
+  }
+
+  .focus-button {
     display: grid;
-
     place-items: center;
-
-    width: 42px;
-    height: 42px;
-
-    flex: 0 0 auto;
-
-    border:
-      1px
-      solid
-      var(--line);
-
-    background:
-      var(--white);
-
-    color:
-      var(--black);
-
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--white);
+    color: var(--muted);
     cursor: pointer;
-
-    transition:
-      background 160ms ease,
-      border-color 160ms ease,
-      transform 160ms ease;
   }
 
-  .icon-button:hover {
-    border-color: #cfcfcf;
-
-    background:
-      var(--surface);
+  .focus-button:hover,
+  .focus-button:focus-visible {
+    border-color: var(--black);
+    color: var(--black);
   }
 
-  .icon-button:active {
-    transform:
-      scale(0.95);
-  }
-
-  .icon-button svg {
-    width: 17px;
-    height: 17px;
-
+  .focus-button svg {
+    width: 15px;
+    height: 15px;
     fill: none;
-
-    stroke:
-      currentColor;
-
-    stroke-width: 1.8;
-
+    stroke: currentColor;
+    stroke-width: 1.7;
     stroke-linecap: round;
   }
 
-  /* =========================================================
-     PLAYER
-  ========================================================== */
+  .focus-button span {
+    display: none;
+  }
 
   .player-shell {
+    display: none;
     position: sticky;
-
+    top: 8px;
     z-index: 30;
-
-    top: 14px;
-
-    margin-bottom: 28px;
-
+    margin-bottom: 18px;
     overflow: hidden;
-
-    border:
-      1px
-      solid
-      #dedede;
-
-    background:
-      rgba(
-        255,
-        255,
-        255,
-        0.96
-      );
-
-    box-shadow:
-      0 1px 0
-        rgba(
-          0,
-          0,
-          0,
-          0.04
-        ),
-      0 12px 32px
-        rgba(
-          0,
-          0,
-          0,
-          0.06
-        );
-
-    backdrop-filter:
-      blur(14px);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: rgba(255,255,255,.96);
+    box-shadow: 0 8px 24px rgba(0,0,0,.06);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
   }
 
-  .player-top {
+  .player-header {
     display: grid;
-
-    grid-template-columns:
-      1fr
-      auto
-      1fr;
-
+    grid-template-columns: 1fr auto;
     align-items: center;
-
-    padding:
-      10px
-      14px;
-
-    border-bottom:
-      1px
-      solid
-      var(--line);
-
-    color:
-      var(--soft);
-
-    font-family:
-      ui-monospace,
-      SFMono-Regular,
-      Menlo,
-      Monaco,
-      Consolas,
-      monospace;
-
-    font-size: 9px;
-
-    font-weight: 800;
-
-    letter-spacing:
-      0.12em;
+    gap: 10px;
+    padding: 9px 11px;
+    border-bottom: 1px solid var(--line);
+    font: 800 7px ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+    letter-spacing: .11em;
   }
 
-  .player-status {
-    display: flex;
-
+  .player-state {
+    display: inline-flex;
     align-items: center;
-
     gap: 7px;
+    min-width: 0;
+    color: var(--muted);
   }
 
   .status-dot {
     width: 6px;
     height: 6px;
-
+    flex: 0 0 auto;
     border-radius: 50%;
-
-    background:
-      #c7c7c7;
+    background: #c7cac7;
+    transition:
+      background 160ms ease,
+      box-shadow 160ms ease;
   }
 
   .status-dot.is-active {
-    background:
-      var(--black);
-
-    box-shadow:
-      0 0 0 3px #e5e5e5;
+    background: var(--accent);
+    box-shadow: 0 0 0 4px rgba(22,131,79,.1);
   }
 
-  .player-title {
-    color:
-      var(--black);
+  .player-mode {
+    display: none;
   }
 
-  .player-time {
+  .player-progress-text {
+    color: var(--soft);
     text-align: right;
   }
 
   .progress-track {
-    width: 100%;
-
     height: 2px;
-
-    background:
-      #eeeeee;
+    background: #ededed;
   }
 
   .progress-fill {
     width: 0;
-
     height: 100%;
-
-    background:
-      var(--black);
-
-    transition:
-      width 100ms linear;
+    background: var(--accent);
+    transition: width 100ms linear;
   }
 
   .player-controls {
-    display: flex;
-
-    align-items: center;
-
-    justify-content: space-between;
-
-    gap: 20px;
-
-    padding:
-      11px
-      14px;
+    display: grid;
+    gap: 10px;
+    padding: 10px;
   }
 
-  .control-group {
-    display: flex;
-
+  .player-main-controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
-
-    gap: 8px;
+    gap: 9px;
   }
 
   .primary-control {
     display: inline-flex;
-
     align-items: center;
-
+    justify-content: center;
     gap: 8px;
-
-    min-height: 32px;
-
-    padding:
-      0
-      12px;
-
-    border:
-      1px
-      solid
-      var(--black);
-
-    background:
-      var(--black);
-
-    color:
-      white;
-
-    font-size: 11px;
-
-    font-weight: 700;
-
+    min-height: 38px;
+    padding: 0 12px;
+    border: 1px solid var(--black);
+    border-radius: 10px;
+    background: var(--black);
+    color: var(--white);
+    font-size: 10px;
+    font-weight: 750;
     cursor: pointer;
-
-    transition:
-      background 150ms ease,
-      color 150ms ease,
-      transform 150ms ease;
-  }
-
-  .primary-control:hover {
-    background:
-      white;
-
-    color:
-      var(--black);
   }
 
   .primary-control:active {
-    transform:
-      translateY(1px);
+    transform: translateY(1px);
   }
 
   .primary-control svg {
-    width: 13px;
-    height: 13px;
-
-    fill:
-      currentColor;
+    width: 12px;
+    height: 12px;
+    fill: currentColor;
   }
 
   .speed-control {
-    display: flex;
-
+    display: inline-flex;
     align-items: center;
+    gap: 5px;
+  }
 
-    gap: 7px;
-
-    padding-left: 4px;
-
-    color:
-      var(--soft);
-
-    font-family:
-      ui-monospace,
-      SFMono-Regular,
-      Menlo,
-      Monaco,
-      Consolas,
-      monospace;
-
-    font-size: 9px;
-
-    font-weight: 700;
+  .control-label {
+    display: none;
   }
 
   .speed-button {
     display: grid;
-
     place-items: center;
-
-    width: 26px;
-    height: 26px;
-
-    border:
-      1px
-      solid
-      var(--line);
-
-    background:
-      white;
-
-    color:
-      var(--black);
-
+    width: 31px;
+    height: 31px;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: var(--white);
+    color: var(--black);
     font-size: 15px;
-
-    line-height: 1;
-
     cursor: pointer;
-
-    transition:
-      border-color 120ms ease,
-      background 120ms ease;
   }
 
-  .speed-button:hover {
-    border-color:
-      var(--black);
-
-    background:
-      var(--surface);
+  .speed-button:disabled,
+  .mobile-speed-button:disabled {
+    opacity: .32;
+    cursor: not-allowed;
   }
 
   .speed-value {
-    min-width: 40px;
-
-    color:
-      var(--black);
-
+    min-width: 42px;
+    color: var(--black);
+    font: 9px ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
     text-align: center;
   }
 
-  .text-control {
-    padding:
-      6px
-      8px;
+  .player-secondary-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
 
-    border: 0;
-
-    background:
-      transparent;
-
-    color:
-      var(--muted);
-
-    font-size: 11px;
-
-    font-weight: 600;
-
+  .text-button {
+    min-height: 30px;
+    padding: 6px 8px;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: var(--white);
+    color: var(--muted);
+    font-size: 9px;
+    font-weight: 650;
     cursor: pointer;
-
-    transition:
-      color 130ms ease;
   }
-
-  .text-control:hover {
-    color:
-      var(--black);
-  }
-
-  /* =========================================================
-     TOOLS
-  ========================================================== */
 
   .utility-bar {
-    display: flex;
-
-    align-items: center;
-
-    justify-content: space-between;
-
-    gap: 24px;
-
-    margin-bottom: 42px;
-
-    padding: 14px;
-
-    border-top:
-      1px
-      solid
-      var(--line);
-
-    border-bottom:
-      1px
-      solid
-      var(--line);
+    display: grid;
+    gap: 12px;
+    margin-bottom: 28px;
+    padding: 12px 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
   }
 
   .utility-heading {
     display: flex;
-
     flex-direction: column;
-
     gap: 3px;
-
-    min-width: 150px;
+    min-width: 0;
   }
 
-  .utility-label {
-    color:
-      var(--black);
-
-    font-family:
-      ui-monospace,
-      SFMono-Regular,
-      Menlo,
-      Monaco,
-      Consolas,
-      monospace;
-
-    font-size: 9px;
-
-    font-weight: 800;
-
-    letter-spacing:
-      0.14em;
+  .utility-title {
+    color: var(--black);
+    font: 850 8px ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+    letter-spacing: .13em;
   }
 
-  .utility-description {
-    color:
-      var(--soft);
-
-    font-size: 10px;
+  .utility-subtitle {
+    color: var(--soft);
+    font-size: 8px;
   }
 
   .utility-controls {
-    display: flex;
-
-    align-items: center;
-
-    gap: 12px;
-  }
-
-  .utility-control {
-    display: flex;
-
-    align-items: center;
-
-    gap: 7px;
-  }
-
-  .utility-button {
     display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    align-items: center;
+  }
 
+  .utility-group {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .utility-action {
+    display: grid;
     place-items: center;
-
-    width: 30px;
-    height: 30px;
-
-    border:
-      1px
-      solid
-      var(--line);
-
-    background:
-      var(--white);
-
-    color:
-      var(--black);
-
+    width: 32px;
+    height: 32px;
+    flex: 0 0 auto;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: var(--white);
+    color: var(--black);
     font-size: 14px;
-
-    font-weight: 700;
-
+    font-weight: 750;
     cursor: pointer;
-
-    transition:
-      150ms ease;
   }
 
-  .utility-button-wide {
+  .utility-action:disabled {
+    opacity: .35;
+    cursor: not-allowed;
+    border-color: var(--line);
+    background: var(--surface);
+    color: var(--soft);
+  }
+
+  .utility-action-wide {
     width: 34px;
-
-    font-size: 11px;
-  }
-
-  .utility-button:hover {
-    border-color:
-      var(--black);
-
-    background:
-      var(--black);
-
-    color:
-      white;
+    font-size: 10px;
   }
 
   .utility-value {
     display: flex;
-
     flex-direction: column;
-
-    min-width: 34px;
-
-    gap: 1px;
+    justify-content: center;
+    min-width: 44px;
+    gap: 2px;
   }
 
-  .utility-small {
-    color:
-      var(--soft);
-
-    font-family:
-      ui-monospace,
-      SFMono-Regular,
-      Menlo,
-      Monaco,
-      Consolas,
-      monospace;
-
-    font-size: 7px;
-
-    font-weight: 800;
-
-    letter-spacing:
-      0.08em;
+  .utility-value span {
+    color: var(--soft);
+    font: 800 6px ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+    letter-spacing: .09em;
+    text-align: center;
   }
 
   .utility-value strong {
-    color:
-      var(--black);
-
-    font-size: 11px;
-
+    color: var(--black);
+    font: 10px ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
     line-height: 1;
+    text-align: center;
   }
 
   .utility-divider {
-    width: 1px;
-
-    height: 26px;
-
-    background:
-      var(--line);
+    display: none;
   }
 
-  .utility-toggle {
+  .mode-toggle {
+    grid-column: 1 / -1;
     display: inline-flex;
-
     align-items: center;
-
+    justify-content: center;
     gap: 8px;
-
-    padding: 0;
-
-    border: 0;
-
-    background:
-      transparent;
-
-    color:
-      var(--black);
-
+    min-height: 40px;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--white);
+    color: var(--black);
     text-align: left;
-
     cursor: pointer;
   }
 
-  .utility-toggle strong {
-    display: block;
-
-    font-size: 10px;
-
-    line-height: 1.1;
+  .toggle-track {
+    position: relative;
+    width: 30px;
+    height: 18px;
+    flex: 0 0 auto;
+    border: 1px solid #cdcdcd;
+    border-radius: 999px;
+    background: #f0f0f0;
   }
 
-  .utility-toggle small {
+  .toggle-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 12px;
+    height: 12px;
+    border: 1px solid #bbb;
+    border-radius: 50%;
+    background: var(--white);
+    transition: transform 140ms ease;
+  }
+
+  .ukulele-mode .toggle-track {
+    border-color: var(--accent);
+    background: var(--accent);
+  }
+
+  .ukulele-mode .toggle-thumb {
+    transform: translateX(12px);
+    border-color: var(--white);
+  }
+
+  .toggle-copy strong {
     display: block;
+    font-size: 9px;
+    line-height: 1.15;
+  }
 
+  .toggle-copy small {
+    display: block;
     margin-top: 2px;
-
-    color:
-      var(--soft);
-
+    color: var(--soft);
     font-size: 8px;
   }
 
-  .toggle-indicator {
-    position: relative;
-
-    width: 29px;
-    height: 17px;
-
-    flex: 0 0 auto;
-
-    border:
-      1px
-      solid
-      #cecece;
-
-    border-radius:
-      999px;
-
-    background:
-      #f1f1f1;
-
-    transition:
-      background 150ms ease;
-  }
-
-  .toggle-indicator::after {
-    content: '';
-
-    position: absolute;
-
-    top: 2px;
-    left: 2px;
-
-    width: 11px;
-    height: 11px;
-
-    border:
-      1px
-      solid
-      #bcbcbc;
-
-    border-radius: 50%;
-
-    background:
-      white;
-
-    transition:
-      transform 150ms ease;
-  }
-
-  .ukulele-mode .toggle-indicator {
-    border-color:
-      var(--black);
-
-    background:
-      var(--black);
-  }
-
-  .ukulele-mode .toggle-indicator::after {
-    transform:
-      translateX(12px);
-
-    border-color:
-      white;
-  }
-
-  /* =========================================================
-     LYRICS
-  ========================================================== */
-
   .lyrics-container {
-    position: relative;
+    width: 100%;
   }
 
   .lyrics-inner {
     width: 100%;
   }
 
-  .chord-line {
+  .song-row {
     position: relative;
-
-    display: flex;
-
-    align-items: baseline;
-
-    flex-wrap: wrap;
-
-    min-height: 30px;
-
-    padding:
-      2px 0;
-
-    animation:
-      lyricReveal
-      0.45s
-      cubic-bezier(
-        0.22,
-        1,
-        0.36,
-        1
-      )
-      both;
-
-    animation-delay:
-      calc(
-        var(--line-index) *
-        18ms
-      );
-  }
-
-  .empty-line {
-    min-height: 24px;
-  }
-
-  .line-spacer {
     width: 100%;
-    height: 14px;
+    font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;
+    font-size: calc(.96rem * var(--lyrics-scale));
+    line-height: 1.9;
   }
 
-  .chord-line + .chord-line {
-    margin-top: 1px;
+  .paired-row,
+  .instrumental-row,
+  .lyric-only-row {
+    margin-bottom: 10px;
   }
 
-  .chord-item {
+  .chord-layer {
     position: relative;
-
-    display: inline-flex;
-
-    align-items: flex-end;
-
-    color:
-      var(--black);
-
-    font-family:
-      ui-monospace,
-      SFMono-Regular,
-      Menlo,
-      Monaco,
-      Consolas,
-      monospace;
-
-    font-size:
-      calc(
-        0.78rem *
-        var(--lyrics-scale)
-      );
-
-    font-weight: 850;
-
+    width: 100%;
+    min-height: calc(1.5em * var(--lyrics-scale));
     line-height: 1;
-
-    letter-spacing:
-      -0.04em;
-
-    margin-right: 1px;
-
-    padding:
-      2px 2px 0;
-
-    transform:
-      translateY(-0.58em);
-
-    transform-origin:
-      bottom;
+    white-space: nowrap;
   }
 
-  .chord-item::after {
-    content: '';
+  .instrumental-chord-layer {
+    min-height: calc(1.75em * var(--lyrics-scale));
+  }
 
+  .lyric-layer {
+    width: 100%;
+    color: var(--ink);
+    font: 500 1em/1.85 ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;
+    white-space: pre-wrap;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  .chord-button {
     position: absolute;
-
-    right: 2px;
-    bottom: -3px;
-    left: 2px;
-
-    height: 1px;
-
-    background:
-      #d4d4d4;
-
-    opacity: 0;
-
-    transition:
-      opacity 120ms ease;
+    top: 0;
+    left: calc(var(--chord-position) * 1ch);
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    height: calc(1.42em * var(--lyrics-scale));
+    margin: 0;
+    padding: 0 1px;
+    border: 0;
+    background: transparent;
+    color: var(--black);
+    font: 900 calc(.76rem * var(--lyrics-scale))/1 ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;
+    letter-spacing: -.045em;
+    cursor: pointer;
+    white-space: nowrap;
+    transform: translateY(-.08em);
   }
 
-  .chord-item:hover::after {
-    opacity: 1;
+  .chord-button:hover,
+  .chord-button:focus-visible {
+    color: var(--accent);
   }
 
-  .lyric-item {
-    display: inline;
-
-    margin-right: 1px;
-
-    color:
-      #171717;
-
-    font-family:
-      Inter,
-      ui-sans-serif,
-      system-ui,
-      -apple-system,
-      BlinkMacSystemFont,
-      "Segoe UI",
-      sans-serif;
-
-    font-size:
-      calc(
-        1rem *
-        var(--lyrics-scale)
-      );
-
-    line-height: 1.95;
-
-    letter-spacing:
-      -0.012em;
+  .chord-button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
   }
 
-  /* =========================================================
-     SECTION MARKERS
-  ========================================================== */
+  .ukulele-mode .chord-button {
+    font-size: calc(.9rem * var(--lyrics-scale));
+    font-weight: 950;
+  }
+
+  .song-blank {
+    height: calc(.8rem * var(--lyrics-scale));
+  }
 
   .section-marker {
-    display: flex;
-
+    display: grid;
+    grid-template-columns: auto 12px auto minmax(0,1fr);
     align-items: center;
-
+    gap: 6px;
     width: 100%;
-
-    gap: 12px;
-
-    margin:
-      30px 0 15px;
-
-    color:
-      var(--black);
-
-    font-family:
-      ui-monospace,
-      SFMono-Regular,
-      Menlo,
-      Monaco,
-      Consolas,
-      monospace;
-
-    font-size: 9px;
-
-    font-weight: 850;
-
-    letter-spacing:
-      0.16em;
-
-    text-transform:
-      uppercase;
+    margin: 25px 0 13px;
   }
 
-  .section-line {
-    width: 24px;
+  .section-number {
+    color: #c2c2c2;
+    font: 850 6px ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+  }
+
+  .section-rule {
+    width: 12px;
     height: 1px;
-
-    background:
-      var(--black);
-
-    opacity: 0.45;
+    background: var(--black);
   }
 
-  .section-marker .section-line:last-child {
-    flex: 1;
-
-    background:
-      var(--line);
-
-    opacity: 1;
+  .section-rule-grow {
+    width: 100%;
+    background: var(--line);
   }
 
-  /* =========================================================
-     UKULELE MODE
-  ========================================================== */
+  .section-name {
+    min-width: 0;
+    color: var(--black);
+    font: 900 7px ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
-  .ukulele-mode .chord-item {
-    font-size:
-      calc(
-        0.95rem *
-        var(--lyrics-scale)
-      );
+  .chord-dialog {
+    width: calc(100vw - 24px);
+    max-width: 430px;
+    max-height: min(88dvh, 720px);
+    margin: auto;
+    padding: 0;
+    border: 0;
+    border-radius: 18px;
+    background: #fff;
+    color: #171917;
+    overflow: hidden;
+    box-shadow:
+      0 34px 90px rgba(0,0,0,.2),
+      0 8px 24px rgba(0,0,0,.08);
+  }
 
+  .chord-dialog:not([open]) {
+    display: none;
+  }
+
+  .chord-dialog::backdrop {
+    background: rgba(12,14,12,.46);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+  }
+
+  .dialog-inner {
+    padding: 15px 14px 13px;
+  }
+
+  .dialog-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+  }
+
+  .dialog-name {
+    margin: 0;
+    color: #111311;
+    font-size: 30px;
+    line-height: .95;
     font-weight: 900;
-
-    transform:
-      translateY(-0.62em);
-
-    padding-left: 4px;
-    padding-right: 4px;
+    letter-spacing: -.06em;
   }
 
-  .ukulele-mode .lyric-item {
-    font-size:
-      calc(
-        1.04rem *
-        var(--lyrics-scale)
+  .dialog-caption {
+    margin: 7px 0 0;
+    color: #747974;
+    font: 9px ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+    letter-spacing: .04em;
+  }
+
+  .dialog-close {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 1px solid #d8dcd7;
+    border-radius: 50%;
+    background: #fff;
+    color: #6a706a;
+    font: 300 20px/1 Arial,Helvetica,sans-serif;
+    cursor: pointer;
+  }
+
+  .dialog-close:focus-visible {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow:
+      0 0 0 3px rgba(22,131,79,.1);
+  }
+
+  .dialog-diagram {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 270px;
+    padding: 6px 0 3px;
+    background:
+      linear-gradient(
+        to bottom,
+        #fff 0%,
+        #fbfbfb 100%
       );
   }
 
-  .ukulele-mode .chord-item::before {
-    content: '';
-
-    position: absolute;
-
-    inset:
-      -4px -2px;
-
-    z-index: -1;
-
-    border:
-      1px
-      solid
-      #e8e8e8;
-
-    background:
-      #f4f4f4;
+  .ukulele-chord-svg {
+    display: block;
+    width: 275px;
+    max-width: 100%;
+    height: auto;
+    overflow: visible;
   }
 
-  /* =========================================================
-     FOCUS MODE
-  ========================================================== */
+  .dialog-guide {
+    display: grid;
+    grid-template-columns: repeat(4,minmax(0,1fr));
+    gap: 6px;
+    margin-top: 3px;
+    padding-top: 10px;
+    border-top: 1px solid #eceeeb;
+  }
+
+  .dialog-string {
+    min-width: 0;
+    text-align: center;
+  }
+
+  .dialog-string-name {
+    display: block;
+    color: #434843;
+    font-size: 8px;
+    line-height: 1;
+    font-weight: 800;
+  }
+
+  .dialog-string-note {
+    display: block;
+    margin-top: 4px;
+    color: #777d77;
+    font-size: 8px;
+    line-height: 1;
+  }
+
+  .diagram-unavailable {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 220px;
+    text-align: center;
+  }
+
+  .diagram-unavailable strong {
+    color: #171917;
+    font: 900 14px ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+  }
+
+  .diagram-unavailable span {
+    color: #878c87;
+    font-size: 9px;
+  }
+
+  .mobile-player {
+    position: fixed;
+    right: 10px;
+    bottom: calc(10px + env(safe-area-inset-bottom));
+    left: 10px;
+    z-index: 50;
+    display: grid;
+    gap: 8px;
+    padding: 9px;
+    border: 1px solid rgba(218,221,217,.96);
+    border-radius: 16px;
+    background: rgba(255,255,255,.94);
+    box-shadow: 0 18px 48px rgba(0,0,0,.12);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    transition:
+      border-color 160ms ease,
+      box-shadow 160ms ease;
+  }
+
+  .mobile-player.is-active {
+    border-color: rgba(22,131,79,.28);
+    box-shadow:
+      0 18px 48px rgba(0,0,0,.12),
+      0 0 0 1px rgba(22,131,79,.08);
+  }
+
+  .mobile-player-main {
+    display: grid;
+    grid-template-columns: auto minmax(0,1fr) auto;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .mobile-play {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    flex: 0 0 auto;
+    border: 1px solid var(--black);
+    border-radius: 12px;
+    background: var(--black);
+    color: #fff;
+    cursor: pointer;
+  }
+
+  .mobile-play svg {
+    width: 13px;
+    height: 13px;
+    fill: currentColor;
+  }
+
+  .mobile-player-info {
+    min-width: 0;
+  }
+
+  .mobile-player-info span {
+    display: block;
+    color: var(--soft);
+    font: 800 7px ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+    letter-spacing: .13em;
+  }
+
+  .mobile-player-info strong {
+    display: block;
+    margin-top: 3px;
+    color: var(--black);
+    font: 800 12px ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+  }
+
+  .mobile-speed-control {
+    display: grid;
+    grid-template-columns: repeat(2, 36px);
+    gap: 5px;
+  }
+
+  .mobile-speed-button {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--white);
+    color: var(--black);
+    font-size: 16px;
+    cursor: pointer;
+  }
+
+  .mobile-speed-button:active,
+  .mobile-play:active {
+    transform: translateY(1px);
+  }
+
+  .mobile-progress-track {
+    width: 100%;
+    height: 2px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #eceeeb;
+  }
+
+  .mobile-progress-fill {
+    display: block;
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--accent);
+    transition: width 100ms linear;
+  }
 
   .focus-mode .song-header,
   .focus-mode .utility-bar {
-    opacity: 0.35;
+    opacity: .32;
+  }
 
-    transition:
-      opacity 180ms ease;
+  .focus-mode .lyrics-container {
+    max-width: 820px;
+    margin-inline: auto;
   }
 
   .focus-mode .song-header:hover,
@@ -2801,344 +4376,296 @@ const parsedLines = parseChordContent(content);
     opacity: 1;
   }
 
-  .focus-mode .lyrics-container {
-    max-width: 760px;
-
-    margin-inline:
-      auto;
+  .ukulele-mode .lyric-layer {
+    font-size: 1.04em;
   }
 
-  .focus-mode .lyric-item {
-    font-size:
-      calc(
-        1.06rem *
-        var(--lyrics-scale)
-      );
-
-    line-height: 2.1;
-  }
-
-  /* =========================================================
-     MOBILE PLAYER
-  ========================================================== */
-
-  .mobile-player {
-    position: fixed;
-
-    z-index: 50;
-
-    right: 18px;
-    bottom: 18px;
-    left: 18px;
-
-    display: none;
-
-    align-items: center;
-
-    gap: 12px;
-
-    padding: 8px;
-
-    border:
-      1px
-      solid
-      #d7d7d7;
-
-    background:
-      rgba(
-        255,
-        255,
-        255,
-        0.97
-      );
-
-    box-shadow:
-      0 15px 40px
-        rgba(
-          0,
-          0,
-          0,
-          0.12
-        );
-
-    backdrop-filter:
-      blur(15px);
-  }
-
-  .mobile-play {
-    display: grid;
-
-    place-items: center;
-
-    width: 38px;
-    height: 38px;
-
-    flex: 0 0 auto;
-
-    border:
-      1px
-      solid
-      var(--black);
-
-    background:
-      var(--black);
-
-    color:
-      white;
-
-    cursor: pointer;
-  }
-
-  .mobile-play svg {
-    width: 14px;
-    height: 14px;
-
-    fill:
-      currentColor;
-  }
-
-  .mobile-player-info {
-    display: flex;
-
-    flex: 1;
-
-    flex-direction: column;
-
-    gap: 2px;
-  }
-
-  .mobile-player-info span {
-    color:
-      var(--soft);
-
-    font-family:
-      ui-monospace,
-      SFMono-Regular,
-      Menlo,
-      Monaco,
-      Consolas,
-      monospace;
-
-    font-size: 8px;
-
-    font-weight: 800;
-
-    letter-spacing:
-      0.12em;
-  }
-
-  .mobile-player-info strong {
-    color:
-      var(--black);
-
-    font-size: 11px;
-  }
-
-  .mobile-speed {
-    width: 38px;
-    height: 38px;
-
-    border:
-      1px
-      solid
-      var(--line);
-
-    background:
-      white;
-
-    color:
-      var(--black);
-
-    font-size: 18px;
-
-    cursor: pointer;
-  }
-
-  /* =========================================================
-     ANIMATION
-  ========================================================== */
-
-  @keyframes lyricReveal {
-    from {
-      opacity: 0;
-
-      transform:
-        translateY(5px);
-    }
-
-    to {
-      opacity: 1;
-
-      transform:
-        translateY(0);
-    }
-  }
-
-  /* =========================================================
-     RESPONSIVE
-  ========================================================== */
-
-  @media (max-width: 760px) {
-
+  @media (min-width: 540px) {
     .song-detail {
-      padding:
-        32px
-        18px
-        110px;
-    }
-
-    .song-header {
-      margin-bottom: 28px;
+      padding-inline: 20px;
     }
 
     .song-header h1 {
-      font-size:
-        clamp(
-          2rem,
-          10vw,
-          3rem
-        );
-    }
-
-    .player-shell {
-      position: relative;
-
-      top: auto;
-    }
-
-    .player-controls {
-      align-items:
-        stretch;
-
-      flex-direction:
-        column;
-
-      gap: 10px;
-    }
-
-    .auto-scroll-controls {
-      justify-content:
-        space-between;
-    }
-
-    .secondary-controls {
-      justify-content:
-        flex-end;
-    }
-
-    .utility-bar {
-      align-items:
-        flex-start;
-
-      flex-direction:
-        column;
-
-      gap: 15px;
+      font-size: clamp(2.6rem, 8vw, 4.4rem);
     }
 
     .utility-controls {
-      width: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+    }
 
-      justify-content:
-        space-between;
+    .utility-group {
+      flex: 0 0 auto;
     }
 
     .utility-divider {
-      display: none;
+      display: block;
+      width: 1px;
+      height: 24px;
+      background: var(--line);
     }
 
-    .mobile-player {
-      display: flex;
-    }
-  }
-
-  @media (max-width: 520px) {
-
-    .song-detail {
-      padding-inline:
-        14px;
-    }
-
-    .song-header {
-      gap: 15px;
-    }
-
-    .icon-button {
-      width: 36px;
-      height: 36px;
-    }
-
-    .utility-description {
-      display: none;
-    }
-
-    .utility-controls {
-      gap: 8px;
-
-      flex-wrap:
-        wrap;
-    }
-
-    .utility-toggle {
-      margin-left:
-        auto;
-    }
-
-    .chord-line {
-      min-height:
-        27px;
-    }
-
-    .lyric-item {
-      font-size:
-        calc(
-          0.94rem *
-          var(--lyrics-scale)
-        );
-
-      line-height:
-        1.85;
-    }
-
-    .chord-item {
-      font-size:
-        calc(
-          0.72rem *
-          var(--lyrics-scale)
-        );
+    .mode-toggle {
+      grid-column: auto;
+      margin-left: auto;
     }
 
     .section-marker {
-      margin-top:
-        24px;
-
-      margin-bottom:
-        12px;
-    }
-
-    .player-top {
       grid-template-columns:
-        1fr auto;
+        auto
+        16px
+        auto
+        minmax(0,1fr);
+      gap: 8px;
     }
 
-    .player-title {
-      display:
-        none;
+    .section-rule {
+      width: 16px;
+    }
+
+    .section-name {
+      font-size: 8px;
+    }
+  }
+
+  @media (min-width: 761px) {
+    .song-detail {
+      padding: 32px 28px 150px;
+    }
+
+    .song-header {
+      grid-template-columns:
+        minmax(0,1fr)
+        auto;
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+
+    .focus-button {
+      width: auto;
+      min-width: 36px;
+      height: 36px;
+      padding: 0 11px;
+      border-radius: 0;
+      gap: 7px;
+    }
+
+    .focus-button span {
+      display: inline;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .song-eyebrow {
+      gap: 9px;
+      margin-bottom: 11px;
+      font-size: 8px;
+    }
+
+    .eyebrow-line {
+      width: 20px;
+    }
+
+    .song-kicker {
+      margin-bottom: 13px;
+      font-size: 8px;
+    }
+
+    .song-header h1 {
+      max-width: 820px;
+      font-size: clamp(3rem, 7vw, 5.2rem);
+    }
+
+    .song-meta {
+      gap: 13px;
+      margin-top: 19px;
+    }
+
+    .artist {
+      font-size: 14px;
+    }
+
+    .song-key {
+      gap: 7px;
+      font-size: 12px;
+    }
+
+    .song-key .key-label {
+      font-size: 8px;
+    }
+
+    .player-shell {
+      top: 14px;
+      margin-bottom: 25px;
+      border-radius: 0;
+    }
+
+    .player-header {
+      grid-template-columns:
+        1fr
+        auto
+        1fr;
+      padding: 9px 13px;
+      font-size: 8px;
+    }
+
+    .player-mode {
+      display: inline;
+      color: var(--black);
+    }
+
+    .player-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 10px 13px;
+    }
+
+    .player-main-controls {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .primary-control {
+      min-height: 32px;
+      padding: 0 11px;
+      border-radius: 0;
+    }
+
+    .control-label {
+      display: inline;
+    }
+
+    .speed-button {
+      width: 26px;
+      height: 26px;
+      border-radius: 0;
+    }
+
+    .player-secondary-controls {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .text-button {
+      min-height: 0;
+      padding: 6px 8px;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+    }
+
+    .utility-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 42px;
+      padding: 13px 0;
+    }
+
+    .utility-heading {
+      min-width: 155px;
+    }
+
+    .utility-controls {
+      align-items: center;
+      flex-wrap: nowrap;
+      gap: 11px;
+    }
+
+    .mode-toggle {
+      padding: 0;
+      min-height: 0;
+      border: 0;
+      background: transparent;
+    }
+
+    .song-row {
+      font-size: calc(1rem * var(--lyrics-scale));
+    }
+
+    .chord-button {
+      font-size:
+        calc(.82rem * var(--lyrics-scale));
+    }
+
+    .ukulele-mode .chord-button {
+      font-size:
+        calc(.96rem * var(--lyrics-scale));
+    }
+
+    .section-marker {
+      grid-template-columns:
+        auto
+        20px
+        auto
+        1fr;
+      gap: 9px;
+      margin: 33px 0 16px;
+    }
+
+    .section-number {
+      font-size: 7px;
+    }
+
+    .section-rule {
+      width: 20px;
+    }
+
+    .section-name {
+      font-size: 8px;
+    }
+
+    .chord-dialog {
+      width: min(
+        430px,
+        calc(100vw - 26px)
+      );
+      border-radius: 18px;
+    }
+
+    .dialog-inner {
+      padding: 18px 18px 15px;
+    }
+
+    .dialog-name {
+      font-size: 34px;
+    }
+
+    .dialog-caption {
+      margin-top: 8px;
+      font-size: 10px;
+    }
+
+    .dialog-diagram {
+      min-height: 305px;
+      padding: 8px 0 4px;
+    }
+
+    .ukulele-chord-svg {
+      width: 285px;
+    }
+
+    .mobile-player {
+      display: none;
+    }
+
+    .player-shell {
+      display: block;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-
-    .chord-line {
-      animation:
-        none;
-    }
-
     *,
     *::before,
     *::after {
-      scroll-behavior:
-        auto !important;
+      scroll-behavior: auto !important;
+      transition-duration: .01ms !important;
     }
   }
 </style>

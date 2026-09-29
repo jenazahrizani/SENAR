@@ -1,17 +1,17 @@
-import { defineConfig } from 'astro/config';
-import tailwind from '@astrojs/tailwind';
+﻿import { defineConfig } from 'astro/config';
 import node from '@astrojs/node';
+import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
   site: 'https://ONEdart.github.io',
   base: '/ChordUkulele',
-
   output: 'server',
+
   adapter: node({
     mode: 'standalone',
   }),
 
-  integrations: [
-    tailwind(),
-  ],
+  vite: {
+    plugins: [tailwindcss()],
+  },
 });
