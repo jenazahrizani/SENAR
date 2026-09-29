@@ -14,7 +14,13 @@ interface Chord {
   content: string;
 }
 
-const base = import.meta.env.BASE_URL || '';
+const normalizeSearchValue = (value: string): string => {
+  return value
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
+};
 
 const snapshot = await adminDb
   .collection('chords')
@@ -24,32 +30,62 @@ const snapshot = await adminDb
 const chords = snapshot.docs.map((doc) => {
   const data = doc.data();
 
+  const title =
+    typeof data.title === 'string' && data.title.trim()
+      ? data.title.trim()
+      : 'Untitled';
+
+  const artist =
+    typeof data.artist === 'string' && data.artist.trim()
+      ? data.artist.trim()
+      : 'Unknown artist';
+
+  const key =
+    typeof data.key === 'string' && data.key.trim()
+      ? data.key.trim()
+      : undefined;
+
+  const content =
+    typeof data.content === 'string'
+      ? data.content
+      : '';
+
   return {
     id: doc.id,
-    ...data,
-    slug: generateSlug(data.title),
+    title,
+    artist,
+    key,
+    content,
+    slug: generateSlug(title),
   };
 }) as Array<Chord & { slug: string }>;
+
+const songCount = chords.length;
+const songCountLabel = String(songCount).padStart(2, '0');
 ---
 
 <Layout title="SENAR — Chord Ukulele">
   <main class="home-page">
 
-    <section class="hero-section">
+    <!-- ======================================================
+         HERO
+    ======================================================= -->
+
+    <section class="hero-section" aria-labelledby="page-title">
       <div class="hero-topline">
         <div class="hero-eyebrow">
-          <span class="eyebrow-mark"></span>
+          <span class="eyebrow-mark" aria-hidden="true"></span>
           <span>UKULELE CHORD LIBRARY</span>
         </div>
 
-        <span class="hero-version">
+        <span class="hero-version" aria-label="Version 01">
           SENAR / 01
         </span>
       </div>
 
       <div class="hero-content">
         <div class="hero-copy">
-          <h1>SENAR</h1>
+          <h1 id="page-title">SENAR</h1>
 
           <p>
             Chord ukulele yang sederhana,
@@ -57,11 +93,11 @@ const chords = snapshot.docs.map((doc) => {
           </p>
         </div>
 
-        <div class="hero-index">
+        <div class="hero-index" aria-label={`${songCount} lagu`}>
           <span class="index-label">LIBRARY</span>
 
-          <strong>
-            {String(chords.length).padStart(2, '0')}
+          <strong aria-hidden="true">
+            {songCountLabel}
           </strong>
 
           <span class="index-caption">
@@ -70,15 +106,22 @@ const chords = snapshot.docs.map((doc) => {
         </div>
       </div>
 
-      <div class="hero-rule"></div>
+      <div class="hero-rule" aria-hidden="true"></div>
     </section>
 
-    <section class="search-section">
+    <!-- ======================================================
+         SEARCH
+    ======================================================= -->
+
+    <section
+      class="search-section"
+      aria-label="Cari lagu"
+    >
       <div class="search-box">
-        <div class="search-icon">
+        <div class="search-icon" aria-hidden="true">
           <svg
             viewBox="0 0 24 24"
-            aria-hidden="true"
+            role="img"
           >
             <circle
               cx="11"
@@ -95,18 +138,23 @@ const chords = snapshot.docs.map((doc) => {
           type="search"
           placeholder="Cari lagu atau artis..."
           autocomplete="off"
+          autocapitalize="none"
           spellcheck="false"
+          enterkeyhint="search"
           aria-label="Cari lagu atau artis"
+          aria-controls="songList"
+          aria-describedby="searchStatus"
         />
 
         <div class="search-meta">
-          <kbd>/</kbd>
+          <kbd aria-hidden="true">/</kbd>
 
           <button
             type="button"
             class="clear-search"
             id="clearSearch"
             aria-label="Hapus pencarian"
+            title="Hapus pencarian"
             hidden
           >
             <svg
@@ -120,12 +168,20 @@ const chords = snapshot.docs.map((doc) => {
         </div>
       </div>
 
-      <div class="search-status">
+      <div
+        class="search-status"
+        id="searchStatus"
+        aria-live="polite"
+        aria-atomic="true"
+      >
         <span id="resultCount">
-          {chords.length} lagu
+          {songCount} lagu
         </span>
 
-        <span class="search-status-separator"></span>
+        <span
+          class="search-status-separator"
+          aria-hidden="true"
+        ></span>
 
         <span>
           UKULELE / ALL KEYS
@@ -133,7 +189,14 @@ const chords = snapshot.docs.map((doc) => {
       </div>
     </section>
 
-    <section class="library-section">
+    <!-- ======================================================
+         LIBRARY
+    ======================================================= -->
+
+    <section
+      class="library-section"
+      aria-labelledby="library-title"
+    >
       <div class="library-heading">
         <div class="library-heading-main">
           <span class="section-kicker">
@@ -141,25 +204,34 @@ const chords = snapshot.docs.map((doc) => {
           </span>
 
           <div class="library-title-row">
-            <h2>Semua lagu</h2>
-            <span class="library-live-dot"></span>
+            <h2 id="library-title">
+              Semua lagu
+            </h2>
+
+            <span
+              class="library-live-dot"
+              aria-hidden="true"
+            ></span>
           </div>
         </div>
 
-        <div class="library-line"></div>
+        <div
+          class="library-line"
+          aria-hidden="true"
+        ></div>
 
         <span class="library-count">
-          {String(chords.length).padStart(2, '0')}
+          {songCountLabel}
         </span>
       </div>
 
-      {chords.length === 0 && (
+      {songCount === 0 && (
         <div class="empty-library">
-          <div class="empty-symbol">
-            <svg
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
+          <div
+            class="empty-symbol"
+            aria-hidden="true"
+          >
+            <svg viewBox="0 0 24 24">
               <path
                 d="M8 3v13.5a3.5 3.5 0 1 0 2 3.15V7h8V5H8z"
               ></path>
@@ -180,17 +252,18 @@ const chords = snapshot.docs.map((doc) => {
         </div>
       )}
 
-      {chords.length > 0 && (
+      {songCount > 0 && (
         <div
           class="song-list"
           id="songList"
+          aria-live="polite"
         >
           {chords.map((chord, index) => (
             <div
               class="song-card-wrapper"
               data-song
-              data-title={chord.title.toLowerCase()}
-              data-artist={chord.artist.toLowerCase()}
+              data-title={normalizeSearchValue(chord.title)}
+              data-artist={normalizeSearchValue(chord.artist)}
               style={`--card-index: ${index}`}
             >
               <SongCard
@@ -206,17 +279,19 @@ const chords = snapshot.docs.map((doc) => {
         </div>
       )}
 
-      {chords.length > 0 && (
+      {songCount > 0 && (
         <div
           class="search-empty"
           id="searchEmpty"
           hidden
+          role="status"
+          aria-live="polite"
         >
-          <div class="empty-search-icon">
-            <svg
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
+          <div
+            class="empty-search-icon"
+            aria-hidden="true"
+          >
+            <svg viewBox="0 0 24 24">
               <circle
                 cx="11"
                 cy="11"
@@ -248,8 +323,15 @@ const chords = snapshot.docs.map((doc) => {
       )}
     </section>
 
+    <!-- ======================================================
+         FOOTER
+    ======================================================= -->
+
     <footer class="home-footer">
-      <div class="footer-rule"></div>
+      <div
+        class="footer-rule"
+        aria-hidden="true"
+      ></div>
 
       <div class="footer-content">
         <span>SENAR</span>
@@ -262,18 +344,19 @@ const chords = snapshot.docs.map((doc) => {
 </Layout>
 
 <script>
-  const root = document.querySelector('.home-page');
-  const searchInput = document.getElementById('song-search');
-  const clearButton = document.getElementById('clearSearch');
-  const resetButton = document.getElementById('resetSearch');
-  const resultCount = document.getElementById('resultCount');
-  const searchEmpty = document.getElementById('searchEmpty');
+  const root = document.querySelector<HTMLElement>('.home-page');
+  const searchInput =
+    document.querySelector<HTMLInputElement>('#song-search');
+  const clearButton =
+    document.querySelector<HTMLButtonElement>('#clearSearch');
+  const resetButton =
+    document.querySelector<HTMLButtonElement>('#resetSearch');
+  const resultCount =
+    document.querySelector<HTMLElement>('#resultCount');
+  const searchEmpty =
+    document.querySelector<HTMLElement>('#searchEmpty');
 
-  const songs = Array.from(
-    document.querySelectorAll('[data-song]')
-  );
-
-  const normalize = (value) => {
+  const normalize = (value: string): string => {
     return value
       .toLowerCase()
       .normalize('NFD')
@@ -281,41 +364,54 @@ const chords = snapshot.docs.map((doc) => {
       .trim();
   };
 
-  const updateSearch = () => {
-    if (!(searchInput instanceof HTMLInputElement)) {
+  const songs = Array.from(
+    document.querySelectorAll<HTMLElement>('[data-song]')
+  ).map((element) => ({
+    element,
+    title: element.dataset.title || '',
+    artist: element.dataset.artist || '',
+  }));
+
+  const setSearchValue = (value: string, focus = false) => {
+    if (!searchInput) {
       return;
     }
 
-    const query = normalize(
-      searchInput.value
-    );
+    searchInput.value = value;
+    updateSearch();
+
+    if (focus) {
+      requestAnimationFrame(() => {
+        searchInput.focus();
+        searchInput.setSelectionRange(
+          searchInput.value.length,
+          searchInput.value.length
+        );
+      });
+    }
+  };
+
+  const updateSearch = () => {
+    if (!searchInput) {
+      return;
+    }
+
+    const query = normalize(searchInput.value);
 
     let visible = 0;
 
-    songs.forEach((song) => {
-      if (!(song instanceof HTMLElement)) {
-        return;
-      }
-
-      const title = normalize(
-        song.dataset.title || ''
-      );
-
-      const artist = normalize(
-        song.dataset.artist || ''
-      );
-
+    for (const song of songs) {
       const matches =
-        query === '' ||
-        title.includes(query) ||
-        artist.includes(query);
+        query.length === 0 ||
+        song.title.includes(query) ||
+        song.artist.includes(query);
 
-      song.hidden = !matches;
+      song.element.hidden = !matches;
 
       if (matches) {
         visible += 1;
       }
-    });
+    }
 
     if (resultCount) {
       resultCount.textContent =
@@ -329,6 +425,7 @@ const chords = snapshot.docs.map((doc) => {
 
     if (searchEmpty) {
       searchEmpty.hidden =
+        query.length === 0 ||
         visible !== 0;
     }
 
@@ -340,7 +437,7 @@ const chords = snapshot.docs.map((doc) => {
     }
   };
 
-  if (searchInput instanceof HTMLInputElement) {
+  if (searchInput) {
     searchInput.addEventListener(
       'input',
       updateSearch
@@ -351,15 +448,7 @@ const chords = snapshot.docs.map((doc) => {
     clearButton.addEventListener(
       'click',
       () => {
-        if (!(searchInput instanceof HTMLInputElement)) {
-          return;
-        }
-
-        searchInput.value = '';
-
-        updateSearch();
-
-        searchInput.focus();
+        setSearchValue('', true);
       }
     );
   }
@@ -368,46 +457,66 @@ const chords = snapshot.docs.map((doc) => {
     resetButton.addEventListener(
       'click',
       () => {
-        if (!(searchInput instanceof HTMLInputElement)) {
-          return;
-        }
-
-        searchInput.value = '';
-
-        updateSearch();
-
-        searchInput.focus();
+        setSearchValue('', true);
       }
     );
   }
 
-  window.addEventListener(
+  document.addEventListener(
     'keydown',
     (event) => {
       const target = event.target;
 
-      if (
+      const isTypingTarget =
         target instanceof HTMLInputElement ||
-        target instanceof HTMLTextAreaElement
-      ) {
-        if (
-          event.key === 'Escape' &&
-          target === searchInput
-        ) {
-          if (searchInput instanceof HTMLInputElement) {
-            searchInput.value = '';
-            updateSearch();
-          }
+        target instanceof HTMLTextAreaElement ||
+        target instanceof HTMLSelectElement ||
+        (target instanceof HTMLElement &&
+          target.isContentEditable);
 
+      /*
+       * ESC:
+       * Clear search when user is inside the search input.
+       */
+      if (
+        event.key === 'Escape' &&
+        target === searchInput &&
+        searchInput
+      ) {
+        event.preventDefault();
+
+        if (searchInput.value !== '') {
+          setSearchValue('');
+        } else {
           searchInput.blur();
         }
 
         return;
       }
 
+      if (isTypingTarget) {
+        return;
+      }
+
+      /*
+       * / opens search.
+       */
       if (
         event.key === '/' &&
-        searchInput instanceof HTMLInputElement
+        searchInput
+      ) {
+        event.preventDefault();
+        searchInput.focus();
+        return;
+      }
+
+      /*
+       * CMD/CTRL + K also opens search.
+       */
+      if (
+        event.key.toLowerCase() === 'k' &&
+        (event.metaKey || event.ctrlKey) &&
+        searchInput
       ) {
         event.preventDefault();
         searchInput.focus();
@@ -416,9 +525,8 @@ const chords = snapshot.docs.map((doc) => {
   );
 
   /*
-   * Important:
-   * Cards are visible even if JS fails.
-   * Animation is only an enhancement.
+   * Progressive enhancement only.
+   * Cards remain visible before JavaScript is ready.
    */
   if (root) {
     root.classList.add('is-ready');
@@ -430,6 +538,10 @@ const chords = snapshot.docs.map((doc) => {
 </script>
 
 <style is:global>
+  /* =========================================================
+     ROOT
+  ========================================================== */
+
   .home-page {
     --black: #090909;
     --ink: #171717;
@@ -440,10 +552,18 @@ const chords = snapshot.docs.map((doc) => {
     --white: #ffffff;
 
     width: 100%;
-    max-width: 900px;
+    max-width: 960px;
+
     margin: 0 auto;
-    padding: 58px 28px 72px;
+
+    padding:
+      28px
+      14px
+      calc(56px + env(safe-area-inset-bottom));
+
     color: var(--ink);
+
+    -webkit-tap-highlight-color: transparent;
   }
 
   /* =========================================================
@@ -451,20 +571,24 @@ const chords = snapshot.docs.map((doc) => {
   ========================================================== */
 
   .hero-section {
-    margin-bottom: 45px;
+    margin-bottom: 34px;
   }
 
   .hero-topline {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 20px;
+
+    gap: 14px;
   }
 
   .hero-eyebrow {
     display: flex;
     align-items: center;
-    gap: 10px;
+
+    min-width: 0;
+
+    gap: 9px;
 
     color: var(--muted);
 
@@ -476,18 +600,26 @@ const chords = snapshot.docs.map((doc) => {
       Consolas,
       monospace;
 
-    font-size: 9px;
+    font-size: 8px;
     font-weight: 800;
-    letter-spacing: 0.18em;
+
+    letter-spacing: 0.16em;
+
+    white-space: nowrap;
   }
 
   .eyebrow-mark {
-    width: 22px;
+    flex: 0 0 auto;
+
+    width: 18px;
     height: 1px;
+
     background: var(--black);
   }
 
   .hero-version {
+    flex: 0 0 auto;
+
     color: #c0c0c0;
 
     font-family:
@@ -500,16 +632,16 @@ const chords = snapshot.docs.map((doc) => {
 
     font-size: 7px;
     font-weight: 800;
+
     letter-spacing: 0.12em;
+
+    white-space: nowrap;
   }
 
   .hero-content {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
+    display: block;
 
-    gap: 30px;
-    margin-top: 19px;
+    margin-top: 17px;
   }
 
   .hero-copy {
@@ -523,38 +655,40 @@ const chords = snapshot.docs.map((doc) => {
 
     font-size:
       clamp(
-        4.2rem,
-        12vw,
-        7.7rem
+        3.9rem,
+        21vw,
+        6rem
       );
 
     line-height: 0.79;
 
     font-weight: 900;
+
     letter-spacing: -0.09em;
   }
 
   .hero-copy p {
-    max-width: 440px;
+    max-width: 340px;
 
-    margin: 22px 0 0;
+    margin: 19px 0 0;
 
     color: var(--muted);
 
-    font-size: 14px;
+    font-size: 13px;
     line-height: 1.7;
   }
 
   .hero-index {
     display: flex;
     flex-direction: column;
-    align-items: flex-end;
+    align-items: flex-start;
 
-    padding-bottom: 4px;
+    margin-top: 23px;
   }
 
   .index-label {
     margin-bottom: 3px;
+
     color: var(--soft);
 
     font-family:
@@ -567,6 +701,7 @@ const chords = snapshot.docs.map((doc) => {
 
     font-size: 7px;
     font-weight: 800;
+
     letter-spacing: 0.14em;
   }
 
@@ -581,14 +716,16 @@ const chords = snapshot.docs.map((doc) => {
       Consolas,
       monospace;
 
-    font-size: 32px;
+    font-size: 30px;
     line-height: 0.9;
     font-weight: 850;
+
     letter-spacing: -0.08em;
   }
 
   .index-caption {
     margin-top: 5px;
+
     color: #bdbdbd;
 
     font-family:
@@ -601,13 +738,16 @@ const chords = snapshot.docs.map((doc) => {
 
     font-size: 6px;
     font-weight: 800;
+
     letter-spacing: 0.1em;
   }
 
   .hero-rule {
     width: 100%;
     height: 1px;
-    margin-top: 36px;
+
+    margin-top: 26px;
+
     background: var(--line);
   }
 
@@ -620,25 +760,34 @@ const chords = snapshot.docs.map((doc) => {
     top: 0;
     z-index: 25;
 
-    margin: 0 -1px 48px;
-    padding: 9px 1px 11px;
+    margin:
+      0
+      -1px
+      34px;
+
+    padding:
+      8px
+      1px
+      10px;
 
     background:
       rgba(
         255,
         255,
         255,
-        0.96
+        0.94
       );
 
-    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
   }
 
   .search-box {
     display: flex;
     align-items: center;
 
-    height: 58px;
+    min-width: 0;
+    height: 54px;
 
     border: 1px solid #d7d7d7;
 
@@ -664,7 +813,9 @@ const chords = snapshot.docs.map((doc) => {
     display: grid;
     place-items: center;
 
-    width: 54px;
+    flex: 0 0 auto;
+
+    width: 47px;
     height: 100%;
   }
 
@@ -673,25 +824,37 @@ const chords = snapshot.docs.map((doc) => {
     height: 17px;
 
     fill: none;
+
     stroke: var(--black);
     stroke-width: 1.7;
+
     stroke-linecap: round;
   }
 
   .search-box input {
     min-width: 0;
+
     flex: 1;
 
+    width: 100%;
     height: 100%;
 
     border: 0;
     outline: 0;
 
+    padding: 0;
+
     background: transparent;
     color: var(--black);
 
-    font-size: 14px;
+    font:
+      inherit;
+
+    font-size: 16px;
     font-weight: 500;
+
+    -webkit-appearance: none;
+    appearance: none;
   }
 
   .search-box input::placeholder {
@@ -706,60 +869,62 @@ const chords = snapshot.docs.map((doc) => {
     display: flex;
     align-items: center;
 
-    gap: 7px;
-    padding-right: 9px;
+    flex: 0 0 auto;
+
+    gap: 6px;
+
+    padding-right: 6px;
   }
 
   .search-meta kbd {
-    display: grid;
-    place-items: center;
-
-    min-width: 25px;
-    height: 23px;
-
-    padding: 0 6px;
-
-    border: 1px solid var(--line);
-    background: var(--surface);
-
-    color: var(--muted);
-
-    font-family:
-      ui-monospace,
-      SFMono-Regular,
-      Menlo,
-      Monaco,
-      Consolas,
-      monospace;
-
-    font-size: 10px;
+    display: none;
   }
 
   .clear-search {
     display: grid;
     place-items: center;
 
-    width: 30px;
-    height: 30px;
+    width: 40px;
+    height: 40px;
 
     border: 0;
-    background: transparent;
 
+    padding: 0;
+
+    background: transparent;
     color: var(--muted);
+
     cursor: pointer;
+
+    touch-action: manipulation;
+
+    transition:
+      color 150ms ease,
+      background 150ms ease;
   }
 
   .clear-search:hover {
     color: var(--black);
   }
 
+  .clear-search:focus-visible,
+  .search-empty button:focus-visible {
+    outline:
+      2px solid
+      var(--black);
+
+    outline-offset: 2px;
+  }
+
   .clear-search svg {
-    width: 14px;
-    height: 14px;
+    width: 15px;
+    height: 15px;
 
     fill: none;
+
     stroke: currentColor;
     stroke-width: 1.8;
+
     stroke-linecap: round;
   }
 
@@ -768,8 +933,10 @@ const chords = snapshot.docs.map((doc) => {
     align-items: center;
 
     gap: 9px;
-    margin-top: 8px;
 
+    min-height: 16px;
+
+    margin-top: 7px;
     padding-inline: 2px;
 
     color: var(--soft);
@@ -784,6 +951,7 @@ const chords = snapshot.docs.map((doc) => {
 
     font-size: 7px;
     font-weight: 700;
+
     letter-spacing: 0.08em;
   }
 
@@ -792,10 +960,13 @@ const chords = snapshot.docs.map((doc) => {
   }
 
   .search-status-separator {
+    flex: 0 0 auto;
+
     width: 3px;
     height: 3px;
 
     border-radius: 50%;
+
     background: #cfcfcf;
   }
 
@@ -811,8 +982,9 @@ const chords = snapshot.docs.map((doc) => {
     display: flex;
     align-items: flex-end;
 
-    gap: 15px;
-    margin-bottom: 17px;
+    gap: 9px;
+
+    margin-bottom: 15px;
   }
 
   .library-heading-main {
@@ -836,13 +1008,15 @@ const chords = snapshot.docs.map((doc) => {
 
     font-size: 7px;
     font-weight: 800;
+
     letter-spacing: 0.15em;
   }
 
   .library-title-row {
     display: flex;
     align-items: center;
-    gap: 9px;
+
+    gap: 8px;
   }
 
   .library-heading h2 {
@@ -850,28 +1024,39 @@ const chords = snapshot.docs.map((doc) => {
 
     color: var(--black);
 
-    font-size: 25px;
+    font-size: 22px;
     line-height: 1;
+
     font-weight: 850;
+
     letter-spacing: -0.045em;
   }
 
   .library-live-dot {
+    flex: 0 0 auto;
+
     width: 5px;
     height: 5px;
 
     border-radius: 50%;
+
     background: var(--black);
   }
 
   .library-line {
     flex: 1;
+
+    width: 100%;
     height: 1px;
+
     margin-bottom: 5px;
+
     background: var(--line);
   }
 
   .library-count {
+    flex: 0 0 auto;
+
     margin-bottom: 1px;
 
     color: var(--soft);
@@ -889,20 +1074,17 @@ const chords = snapshot.docs.map((doc) => {
   }
 
   /* =========================================================
-     CARDS
+     SONG LIST
   ========================================================== */
 
   .song-list {
     display: flex;
     flex-direction: column;
+
     gap: 7px;
   }
 
   .song-card-wrapper {
-    /*
-     * IMPORTANT:
-     * Always visible.
-     */
     opacity: 1;
     transform: none;
   }
@@ -947,9 +1129,15 @@ const chords = snapshot.docs.map((doc) => {
   ========================================================== */
 
   .search-empty {
-    padding: 72px 20px;
+    padding:
+      64px
+      18px;
 
-    border: 1px dashed #d8d8d8;
+    border:
+      1px
+      dashed
+      #d8d8d8;
+
     background: #fcfcfc;
 
     text-align: center;
@@ -966,9 +1154,13 @@ const chords = snapshot.docs.map((doc) => {
     width: 42px;
     height: 42px;
 
-    margin: 0 auto 15px;
+    margin:
+      0
+      auto
+      15px;
 
     border: 1px solid var(--line);
+
     background: white;
   }
 
@@ -1002,6 +1194,7 @@ const chords = snapshot.docs.map((doc) => {
 
     font-size: 7px;
     font-weight: 800;
+
     letter-spacing: 0.15em;
   }
 
@@ -1013,6 +1206,7 @@ const chords = snapshot.docs.map((doc) => {
 
     font-size: 18px;
     font-weight: 850;
+
     letter-spacing: -0.03em;
   }
 
@@ -1032,9 +1226,11 @@ const chords = snapshot.docs.map((doc) => {
   }
 
   .search-empty button {
-    height: 36px;
+    min-height: 40px;
 
-    padding: 0 14px;
+    padding:
+      0
+      15px;
 
     border: 1px solid var(--black);
 
@@ -1045,6 +1241,8 @@ const chords = snapshot.docs.map((doc) => {
     font-weight: 750;
 
     cursor: pointer;
+
+    touch-action: manipulation;
 
     transition:
       background 150ms ease,
@@ -1061,9 +1259,15 @@ const chords = snapshot.docs.map((doc) => {
   ========================================================== */
 
   .empty-library {
-    padding: 82px 20px;
+    padding:
+      74px
+      18px;
 
-    border: 1px dashed #d8d8d8;
+    border:
+      1px
+      dashed
+      #d8d8d8;
+
     background: #fcfcfc;
 
     text-align: center;
@@ -1076,9 +1280,13 @@ const chords = snapshot.docs.map((doc) => {
     width: 44px;
     height: 44px;
 
-    margin: 0 auto 16px;
+    margin:
+      0
+      auto
+      16px;
 
     border: 1px solid var(--line);
+
     background: white;
   }
 
@@ -1104,21 +1312,28 @@ const chords = snapshot.docs.map((doc) => {
   ========================================================== */
 
   .home-footer {
-    margin-top: 78px;
+    margin-top: 64px;
   }
 
   .footer-rule {
     width: 100%;
     height: 1px;
+
     background: var(--line);
   }
 
   .footer-content {
-    display: flex;
+    display: grid;
+
+    grid-template-columns:
+      1fr
+      auto
+      1fr;
+
     align-items: center;
-    justify-content: space-between;
 
     gap: 10px;
+
     margin-top: 11px;
 
     color: var(--soft);
@@ -1131,9 +1346,18 @@ const chords = snapshot.docs.map((doc) => {
       Consolas,
       monospace;
 
-    font-size: 7px;
+    font-size: 6px;
     font-weight: 700;
+
     letter-spacing: 0.12em;
+  }
+
+  .footer-content span:nth-child(2) {
+    text-align: center;
+  }
+
+  .footer-content span:last-child {
+    text-align: right;
   }
 
   .footer-content span:first-child {
@@ -1141,92 +1365,212 @@ const chords = snapshot.docs.map((doc) => {
   }
 
   /* =========================================================
-     RESPONSIVE
+     TABLET
   ========================================================== */
 
-  @media (max-width: 700px) {
+  @media (min-width: 521px) {
     .home-page {
       padding:
-        34px
-        18px
-        60px;
+        42px
+        20px
+        calc(64px + env(safe-area-inset-bottom));
+    }
+
+    .hero-section {
+      margin-bottom: 40px;
+    }
+
+    .hero-eyebrow {
+      font-size: 9px;
     }
 
     .hero-content {
-      align-items: flex-start;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+
+      gap: 30px;
+
+      margin-top: 19px;
     }
 
     .hero-copy h1 {
       font-size:
         clamp(
-          3.8rem,
-          21vw,
-          6rem
+          4.5rem,
+          15vw,
+          7rem
         );
     }
 
     .hero-copy p {
-      max-width: 330px;
-      font-size: 13px;
+      max-width: 420px;
+
+      margin-top: 21px;
+
+      font-size: 14px;
     }
 
     .hero-index {
-      padding-top: 8px;
-    }
-  }
+      align-items: flex-end;
 
-  @media (max-width: 520px) {
-    .home-page {
-      padding-inline: 14px;
-    }
-
-    .hero-version {
-      display: none;
-    }
-
-    .hero-content {
-      display: block;
-    }
-
-    .hero-index {
-      align-items: flex-start;
-      margin-top: 24px;
+      margin-top: 0;
+      padding-bottom: 4px;
     }
 
     .hero-rule {
-      margin-top: 28px;
+      margin-top: 32px;
+    }
+
+    .search-section {
+      margin-bottom: 42px;
     }
 
     .search-box {
-      height: 54px;
+      height: 56px;
     }
 
     .search-icon {
-      width: 46px;
+      width: 50px;
     }
 
-    .search-meta kbd {
-      display: none;
+    .search-box input {
+      font-size: 15px;
     }
 
     .library-heading {
-      gap: 9px;
+      gap: 12px;
+      margin-bottom: 17px;
     }
 
     .library-heading h2 {
-      font-size: 22px;
+      font-size: 24px;
+    }
+
+    .home-footer {
+      margin-top: 72px;
     }
 
     .footer-content {
-      font-size: 6px;
+      font-size: 7px;
     }
   }
+
+  /* =========================================================
+     DESKTOP
+  ========================================================== */
+
+  @media (min-width: 761px) {
+    .home-page {
+      padding:
+        58px
+        28px
+        calc(72px + env(safe-area-inset-bottom));
+    }
+
+    .hero-section {
+      margin-bottom: 45px;
+    }
+
+    .hero-copy h1 {
+      font-size:
+        clamp(
+          5rem,
+          12vw,
+          7.7rem
+        );
+    }
+
+    .hero-copy p {
+      max-width: 440px;
+    }
+
+    .search-section {
+      margin-bottom: 48px;
+    }
+
+    .search-box {
+      height: 58px;
+    }
+
+    .search-icon {
+      width: 54px;
+    }
+
+    .search-box input {
+      font-size: 14px;
+    }
+
+    .search-meta {
+      gap: 7px;
+      padding-right: 9px;
+    }
+
+    .search-meta kbd {
+      display: grid;
+      place-items: center;
+
+      min-width: 25px;
+      height: 23px;
+
+      padding:
+        0
+        6px;
+
+      border: 1px solid var(--line);
+
+      background: var(--surface);
+      color: var(--muted);
+
+      font-family:
+        ui-monospace,
+        SFMono-Regular,
+        Menlo,
+        Monaco,
+        Consolas,
+        monospace;
+
+      font-size: 10px;
+
+      line-height: 1;
+
+      user-select: none;
+    }
+
+    .library-heading {
+      gap: 15px;
+    }
+
+    .library-heading h2 {
+      font-size: 25px;
+    }
+
+    .home-footer {
+      margin-top: 78px;
+    }
+  }
+
+  /* =========================================================
+     LARGE DESKTOP
+  ========================================================== */
+
+  @media (min-width: 960px) {
+    .home-page {
+      padding-left: 28px;
+      padding-right: 28px;
+    }
+  }
+
+  /* =========================================================
+     REDUCED MOTION
+  ========================================================== */
 
   @media (prefers-reduced-motion: reduce) {
     .song-card-wrapper,
     .is-animated .song-card-wrapper {
       opacity: 1;
       transform: none;
+
       animation: none;
     }
 
@@ -1234,7 +1578,15 @@ const chords = snapshot.docs.map((doc) => {
     *::before,
     *::after {
       scroll-behavior: auto !important;
-      transition-duration: 0.01ms !important;
+
+      transition-duration:
+        0.01ms !important;
+
+      animation-duration:
+        0.01ms !important;
+
+      animation-iteration-count:
+        1 !important;
     }
   }
 </style>

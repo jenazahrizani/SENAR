@@ -2,25 +2,41 @@
 export const prerender = false;
 
 import Layout from '../../components/Layout.astro';
-const base = import.meta.env.BASE_URL || '';
+import { parseSongContent } from '../../lib/chordParser';
+
+const base = import.meta.env.BASE_URL || '/';
+
+const normalizedBase =
+  base === '/'
+    ? ''
+    : base.endsWith('/')
+      ? base.slice(0, -1)
+      : base;
 ---
 
 <Layout title="Tambah Chord — SENAR">
-  <main class="editor-page">
+  <main
+    class="editor-page"
+    data-base={normalizedBase}
+  >
 
-    <!-- =========================================================
+    <!-- ======================================================
          HEADER
-    ========================================================== -->
+    ======================================================= -->
 
     <header class="editor-header">
 
       <div class="editor-heading">
 
         <a
-          href={`${base}/admin`}
+          href={`${normalizedBase}/admin`}
           class="back-link"
+          aria-label="Kembali ke library admin"
         >
-          <svg viewBox="0 0 24 24" aria-hidden="true">
+          <svg
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
             <path d="M19 12H5"></path>
             <path d="m11 18-6-6 6-6"></path>
           </svg>
@@ -29,15 +45,23 @@ const base = import.meta.env.BASE_URL || '';
         </a>
 
         <div class="editor-eyebrow">
-          <span class="eyebrow-line"></span>
-          <span>SENAR / NEW ENTRY</span>
+          <span
+            class="eyebrow-line"
+            aria-hidden="true"
+          ></span>
+
+          <span>
+            SENAR / NEW ENTRY
+          </span>
         </div>
 
-        <h1>Tambah chord</h1>
+        <h1>
+          Tambah chord
+        </h1>
 
         <p>
-          Buat entri lagu baru untuk library chord
-          ukulele SENAR.
+          Buat entri lagu baru untuk library
+          chord ukulele SENAR.
         </p>
 
       </div>
@@ -47,15 +71,20 @@ const base = import.meta.env.BASE_URL || '';
         <span
           class="save-status"
           data-save-status
+          role="status"
+          aria-live="polite"
         >
           NEW
         </span>
 
         <a
-          href={`${base}/admin`}
+          href={`${normalizedBase}/admin`}
           class="preview-link"
         >
-          <svg viewBox="0 0 24 24" aria-hidden="true">
+          <svg
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
             <path d="M19 12H5"></path>
             <path d="m11 18-6-6 6-6"></path>
           </svg>
@@ -67,33 +96,40 @@ const base = import.meta.env.BASE_URL || '';
 
     </header>
 
-    <!-- =========================================================
-         MAIN EDITOR
-    ========================================================== -->
+    <!-- ======================================================
+         EDITOR LAYOUT
+    ======================================================= -->
 
     <div class="editor-layout">
 
-      <!-- =======================================================
-           LEFT / FORM
-      ======================================================== -->
+      <!-- ====================================================
+           MAIN FORM
+      ===================================================== -->
 
-      <section class="editor-main">
+      <section
+        class="editor-main"
+        aria-label="Form chord baru"
+      >
 
         <form
           id="createForm"
           class="create-form"
         >
 
-          <!-- =====================================================
+          <!-- ==================================================
                SONG INFORMATION
-          ====================================================== -->
+          =================================================== -->
 
           <div class="editor-section">
 
             <div class="section-heading">
 
-              <div>
-                <span class="section-index">
+              <div class="section-heading-main">
+
+                <span
+                  class="section-index"
+                  aria-hidden="true"
+                >
                   01
                 </span>
 
@@ -106,6 +142,7 @@ const base = import.meta.env.BASE_URL || '';
                     Informasi lagu
                   </h2>
                 </div>
+
               </div>
 
             </div>
@@ -113,45 +150,52 @@ const base = import.meta.env.BASE_URL || '';
             <div class="metadata-grid">
 
               <label class="field field-title">
-
                 <span class="field-label">
                   Judul lagu
-                  <b>*</b>
+                  <b aria-hidden="true">*</b>
+                  <span class="sr-only">
+                    wajib diisi
+                  </span>
                 </span>
 
                 <input
                   type="text"
                   id="title"
+                  name="title"
                   required
+                  maxlength="160"
                   autocomplete="off"
+                  autocapitalize="sentences"
                   class="field-input field-input-large"
                   placeholder="Contoh: Rasa Cinta Ini"
                   data-field
                 />
-
               </label>
 
               <label class="field">
-
                 <span class="field-label">
                   Artis
-                  <b>*</b>
+                  <b aria-hidden="true">*</b>
+                  <span class="sr-only">
+                    wajib diisi
+                  </span>
                 </span>
 
                 <input
                   type="text"
                   id="artist"
+                  name="artist"
                   required
+                  maxlength="120"
                   autocomplete="off"
+                  autocapitalize="words"
                   class="field-input"
                   placeholder="Nama artis"
                   data-field
                 />
-
               </label>
 
               <label class="field field-key">
-
                 <span class="field-label">
                   Kunci
                   <small>opsional</small>
@@ -160,29 +204,39 @@ const base = import.meta.env.BASE_URL || '';
                 <input
                   type="text"
                   id="key"
+                  name="key"
+                  maxlength="8"
                   autocomplete="off"
+                  autocapitalize="characters"
                   class="field-input key-input"
                   placeholder="C"
-                  maxlength="8"
+                  spellcheck="false"
                   data-field
                 />
-
               </label>
 
             </div>
 
           </div>
 
-          <!-- =====================================================
+          <!-- ==================================================
                CHORD EDITOR
-          ====================================================== -->
+          =================================================== -->
 
-          <div class="editor-section chord-editor-section">
+          <div
+            class="editor-section chord-editor-section"
+          >
 
-            <div class="section-heading editor-section-heading">
+            <div
+              class="section-heading editor-section-heading"
+            >
 
-              <div>
-                <span class="section-index">
+              <div class="section-heading-main">
+
+                <span
+                  class="section-index"
+                  aria-hidden="true"
+                >
                   02
                 </span>
 
@@ -192,15 +246,17 @@ const base = import.meta.env.BASE_URL || '';
                   </span>
 
                   <h2>
-                    Chord & lirik
+                    Chord &amp; lirik
                   </h2>
                 </div>
+
               </div>
 
               <div class="content-stats">
 
                 <div>
                   <span>LINES</span>
+
                   <strong data-line-count>
                     0
                   </strong>
@@ -208,6 +264,7 @@ const base = import.meta.env.BASE_URL || '';
 
                 <div>
                   <span>CHARS</span>
+
                   <strong data-char-count>
                     0
                   </strong>
@@ -262,24 +319,14 @@ const base = import.meta.env.BASE_URL || '';
               </div>
 
               <div class="toolbar-hint">
-
-                <span>
-                  [C]Rasa [G]cinta
-                </span>
-
-                <span>
-                  ·
-                </span>
-
-                <span>
-                  TAB = indent
-                </span>
-
+                <span>[C]Rasa [G]cinta</span>
+                <span aria-hidden="true">·</span>
+                <span>TAB = indent</span>
               </div>
 
             </div>
 
-            <!-- EDITOR -->
+            <!-- TEXT EDITOR -->
 
             <div class="editor-wrapper">
 
@@ -293,12 +340,16 @@ const base = import.meta.env.BASE_URL || '';
 
               <textarea
                 id="content"
+                name="content"
                 rows="24"
                 required
                 spellcheck="false"
                 autocomplete="off"
+                autocapitalize="sentences"
+                wrap="off"
                 data-content-editor
                 class="content-editor"
+                aria-label="Isi chord dan lirik"
                 placeholder="[Intro]
 
 [C] [G] [Am] [F]
@@ -315,7 +366,6 @@ const base = import.meta.env.BASE_URL || '';
             </div>
 
             <div class="editor-footer">
-
               <span>
                 Plain text chord format
               </span>
@@ -323,14 +373,13 @@ const base = import.meta.env.BASE_URL || '';
               <span>
                 Ukulele · GCEA
               </span>
-
             </div>
 
           </div>
 
-          <!-- =====================================================
+          <!-- ==================================================
                ACTIONS
-          ====================================================== -->
+          =================================================== -->
 
           <div class="form-actions">
 
@@ -347,9 +396,19 @@ const base = import.meta.env.BASE_URL || '';
               id="previewBtn"
               class="preview-button"
             >
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path>
-                <circle cx="12" cy="12" r="2.5"></circle>
+              <svg
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"
+                ></path>
+
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="2.5"
+                ></circle>
               </svg>
 
               <span>Preview</span>
@@ -364,7 +423,10 @@ const base = import.meta.env.BASE_URL || '';
                 Simpan chord
               </span>
 
-              <svg viewBox="0 0 24 24" aria-hidden="true">
+              <svg
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
                 <path d="M5 12h13"></path>
                 <path d="m13 6 6 6-6 6"></path>
               </svg>
@@ -376,11 +438,14 @@ const base = import.meta.env.BASE_URL || '';
 
       </section>
 
-      <!-- =======================================================
-           RIGHT / LIVE PREVIEW
-      ======================================================== -->
+      <!-- ====================================================
+           LIVE PREVIEW
+      ===================================================== -->
 
-      <aside class="preview-panel">
+      <aside
+        class="preview-panel"
+        aria-label="Live preview"
+      >
 
         <div class="preview-panel-header">
 
@@ -408,7 +473,7 @@ const base = import.meta.env.BASE_URL || '';
           <header class="preview-song-header">
 
             <span class="preview-eyebrow">
-              CHORD & LYRICS
+              CHORD &amp; LYRICS
             </span>
 
             <h3 data-preview-title>
@@ -426,12 +491,16 @@ const base = import.meta.env.BASE_URL || '';
                 data-preview-key-wrap
                 hidden
               >
-                <span class="preview-dot"></span>
+                <span
+                  class="preview-dot"
+                  aria-hidden="true"
+                ></span>
 
                 <span>
                   KEY
-                  <strong data-preview-key>
-                  </strong>
+                  <strong
+                    data-preview-key
+                  ></strong>
                 </span>
               </span>
 
@@ -442,6 +511,7 @@ const base = import.meta.env.BASE_URL || '';
           <div
             class="preview-content"
             data-preview-content
+            aria-live="polite"
           >
             <div class="preview-placeholder">
               Mulai mengetik chord dan lirik
@@ -467,9 +537,9 @@ const base = import.meta.env.BASE_URL || '';
 
     </div>
 
-    <!-- =========================================================
+    <!-- ======================================================
          FOOTER
-    ========================================================== -->
+    ======================================================= -->
 
     <footer class="editor-bottom">
 
@@ -494,496 +564,897 @@ const base = import.meta.env.BASE_URL || '';
 </Layout>
 
 <script>
-  import { parseChordContent } from '../../lib/chordParser';
+  import { parseSongContent } from '../../lib/chordParser';
 
-  const basePath =
-    window.location.pathname
-      .split('/')
-      .slice(0, 2)
-      .join('/') || '';
-
-  const form =
-    document.getElementById('createForm');
-
-  const saveBtn =
-    document.getElementById('saveBtn');
-
-  const saveLabel =
-    document.querySelector('[data-save-label]');
-
-  const saveStatus =
-    document.querySelector('[data-save-status]');
-
-  const cancelBtn =
-    document.getElementById('cancelBtn');
-
-  const previewBtn =
-    document.getElementById('previewBtn');
-
-  const titleInput =
-    document.getElementById('title');
-
-  const artistInput =
-    document.getElementById('artist');
-
-  const keyInput =
-    document.getElementById('key');
-
-  const contentInput =
-    document.getElementById('content');
-
-  const lineCount =
-    document.querySelector('[data-line-count]');
-
-  const charCount =
-    document.querySelector('[data-char-count]');
-
-  const lineNumbers =
-    document.querySelector('[data-line-numbers]');
-
-  const previewTitle =
-    document.querySelector('[data-preview-title]');
-
-  const previewArtist =
-    document.querySelector('[data-preview-artist]');
-
-  const previewKey =
-    document.querySelector('[data-preview-key]');
-
-  const previewKeyWrap =
-    document.querySelector('[data-preview-key-wrap]');
-
-  const previewContent =
-    document.querySelector('[data-preview-content]');
-
-  if (
-    form &&
-    titleInput &&
-    artistInput &&
-    keyInput &&
-    contentInput
-  ) {
-
-    let isDirty = false;
-
-    /*
-     * =========================================================
-     * ESCAPE HTML
-     * =========================================================
-     */
-
-    const escapeHTML = (value) => {
-      const element =
-        document.createElement('div');
-
-      element.textContent = value;
-
-      return element.innerHTML;
-    };
-
-    /*
-     * =========================================================
-     * STATS
-     * =========================================================
-     */
-
-    const updateStats = () => {
-      const content =
-        contentInput.value;
-
-      const lines =
-        content.length === 0
-          ? 0
-          : content.split('\n').length;
-
-      if (lineCount) {
-        lineCount.textContent =
-          String(lines);
+  type PreviewBlock =
+    | {
+        type: 'blank';
       }
-
-      if (charCount) {
-        charCount.textContent =
-          String(content.length);
+    | {
+        type: 'section';
+        value: string;
       }
-    };
-
-    /*
-     * =========================================================
-     * LINE NUMBERS
-     * =========================================================
-     */
-
-    const updateLineNumbers = () => {
-      if (!lineNumbers) return;
-
-      const lines =
-        contentInput.value.split('\n');
-
-      lineNumbers.innerHTML =
-        lines
-          .map((_, index) => {
-            return `<span>${index + 1}</span>`;
-          })
-          .join('');
-    };
-
-    /*
-     * =========================================================
-     * PREVIEW METADATA
-     * =========================================================
-     */
-
-    const updatePreviewMetadata = () => {
-
-      const title =
-        titleInput.value.trim();
-
-      const artist =
-        artistInput.value.trim();
-
-      const key =
-        keyInput.value.trim();
-
-      if (previewTitle) {
-        previewTitle.textContent =
-          title || 'Untitled song';
+    | {
+        type: 'line';
+        chords: Array<{
+          value: string;
+          position: number;
+        }>;
+        lyric: string;
       }
-
-      if (previewArtist) {
-        previewArtist.textContent =
-          artist || 'Unknown artist';
+    | {
+        type: 'instrumental';
+        chords: Array<{
+          value: string;
+          position: number;
+        }>;
       }
+    | {
+        type: 'lyric';
+        lyric: string;
+      };
 
-      if (previewKey) {
-        previewKey.textContent =
-          key;
-      }
+  document.addEventListener(
+    'astro:page-load',
+    () => {
+      const page =
+        document.querySelector<HTMLElement>(
+          '.editor-page'
+        );
 
-      if (previewKeyWrap) {
-        previewKeyWrap.hidden =
-          key.length === 0;
-      }
-    };
-
-    /*
-     * =========================================================
-     * LIVE PREVIEW
-     * =========================================================
-     */
-
-    const renderPreview = () => {
-      if (!previewContent) return;
-
-      const content =
-        contentInput.value;
-
-      if (!content.trim()) {
-        previewContent.innerHTML = `
-          <div class="preview-placeholder">
-            Mulai mengetik chord dan lirik
-            untuk melihat preview.
-          </div>
-        `;
-
+      if (!page) {
         return;
       }
 
-      const parsed =
-        parseChordContent(content);
+      if (
+        page.dataset.initialized === 'true'
+      ) {
+        return;
+      }
 
-      previewContent.innerHTML =
-        parsed
-          .map((line, index) => {
+      page.dataset.initialized = 'true';
 
-            if (line.length === 0) {
-              return `
-                <div class="preview-empty-line"></div>
-              `;
-            }
+      const basePath =
+        page.dataset.base || '';
 
-            const parts =
-              line
-                .map((part) => {
+      const form =
+        document.querySelector<HTMLFormElement>(
+          '#createForm'
+        );
 
-                  if (
-                    part.type === 'section'
-                  ) {
-                    return `
-                      <div class="preview-section">
-                        <span class="preview-section-line"></span>
+      const saveBtn =
+        document.querySelector<HTMLButtonElement>(
+          '#saveBtn'
+        );
 
-                        <span>
-                          ${escapeHTML(
-                            String(part.value)
-                          )}
-                        </span>
-                      </div>
-                    `;
-                  }
+      const saveLabel =
+        document.querySelector<HTMLElement>(
+          '[data-save-label]'
+        );
 
-                  if (
-                    part.type === 'chord'
-                  ) {
-                    return `
-                      <span class="preview-chord">
-                        ${escapeHTML(
-                          String(part.value)
-                        )}
-                      </span>
-                    `;
-                  }
+      const saveStatus =
+        document.querySelector<HTMLElement>(
+          '[data-save-status]'
+        );
 
-                  return `
-                    <span class="preview-lyric">
-                      ${escapeHTML(
-                        String(part.value)
-                      )}
-                    </span>
-                  `;
-                })
-                .join('');
+      const cancelBtn =
+        document.querySelector<HTMLButtonElement>(
+          '#cancelBtn'
+        );
 
-            return `
-              <div
-                class="preview-line"
-                style="--preview-index:${index}"
-              >
-                ${parts}
-              </div>
-            `;
-          })
-          .join('');
-    };
+      const previewBtn =
+        document.querySelector<HTMLButtonElement>(
+          '#previewBtn'
+        );
 
-    const updatePreview = () => {
-      updatePreviewMetadata();
-      renderPreview();
-      updateStats();
-      updateLineNumbers();
-    };
+      const titleInput =
+        document.querySelector<HTMLInputElement>(
+          '#title'
+        );
 
-    /*
-     * =========================================================
-     * DIRTY STATE
-     * =========================================================
-     */
+      const artistInput =
+        document.querySelector<HTMLInputElement>(
+          '#artist'
+        );
 
-    const checkDirtyState = () => {
+      const keyInput =
+        document.querySelector<HTMLInputElement>(
+          '#key'
+        );
 
-      const dirty =
-        titleInput.value.trim().length > 0 ||
-        artistInput.value.trim().length > 0 ||
-        keyInput.value.trim().length > 0 ||
-        contentInput.value.trim().length > 0;
+      const contentInput =
+        document.querySelector<HTMLTextAreaElement>(
+          '#content'
+        );
 
-      isDirty = dirty;
+      const lineCount =
+        document.querySelector<HTMLElement>(
+          '[data-line-count]'
+        );
 
-      if (saveStatus) {
+      const charCount =
+        document.querySelector<HTMLElement>(
+          '[data-char-count]'
+        );
+
+      const lineNumbers =
+        document.querySelector<HTMLElement>(
+          '[data-line-numbers]'
+        );
+
+      const previewTitle =
+        document.querySelector<HTMLElement>(
+          '[data-preview-title]'
+        );
+
+      const previewArtist =
+        document.querySelector<HTMLElement>(
+          '[data-preview-artist]'
+        );
+
+      const previewKey =
+        document.querySelector<HTMLElement>(
+          '[data-preview-key]'
+        );
+
+      const previewKeyWrap =
+        document.querySelector<HTMLElement>(
+          '[data-preview-key-wrap]'
+        );
+
+      const previewContent =
+        document.querySelector<HTMLElement>(
+          '[data-preview-content]'
+        );
+
+      if (
+        !form ||
+        !saveBtn ||
+        !saveLabel ||
+        !saveStatus ||
+        !cancelBtn ||
+        !previewBtn ||
+        !titleInput ||
+        !artistInput ||
+        !keyInput ||
+        !contentInput ||
+        !lineCount ||
+        !charCount ||
+        !lineNumbers ||
+        !previewTitle ||
+        !previewArtist ||
+        !previewKey ||
+        !previewKeyWrap ||
+        !previewContent
+      ) {
+        return;
+      }
+
+      let isDirty = false;
+      let isSaving = false;
+
+      /*
+       * ======================================================
+       * HELPERS
+       * ======================================================
+       */
+
+      const escapeHTML = (
+        value: string
+      ): string => {
+        return String(value)
+          .replaceAll('&', '&amp;')
+          .replaceAll('<', '&lt;')
+          .replaceAll('>', '&gt;')
+          .replaceAll('"', '&quot;')
+          .replaceAll(
+            "'",
+            '&#39;'
+          );
+      };
+
+      const setSaveStatus = (
+        value: string,
+        draft = false
+      ): void => {
         saveStatus.textContent =
-          dirty
-            ? 'DRAFT'
-            : 'NEW';
+          value;
 
         saveStatus.classList.toggle(
           'is-draft',
-          dirty
+          draft
         );
-      }
-    };
+      };
 
-    /*
-     * =========================================================
-     * INPUT EVENTS
-     * =========================================================
-     */
+      const focusField = (
+        field: HTMLInputElement | HTMLTextAreaElement
+      ): void => {
+        field.focus();
 
-    [
-      titleInput,
-      artistInput,
-      keyInput,
-      contentInput,
-    ].forEach((input) => {
+        requestAnimationFrame(() => {
+          const length =
+            field.value.length;
 
-      input.addEventListener(
-        'input',
-        () => {
-          updatePreview();
-          checkDirtyState();
+          try {
+            field.setSelectionRange(
+              length,
+              length
+            );
+          } catch {
+            // Some field types may reject selection ranges.
+          }
+        });
+      };
+
+      /*
+       * ======================================================
+       * STATS
+       * ======================================================
+       */
+
+      const updateStats = (): void => {
+        const value =
+          contentInput.value;
+
+        const lineTotal =
+          value.length === 0
+            ? 0
+            : value.split('\n').length;
+
+        lineCount.textContent =
+          String(lineTotal);
+
+        charCount.textContent =
+          String(value.length);
+      };
+
+      /*
+       * ======================================================
+       * LINE NUMBERS
+       * ======================================================
+       */
+
+      const updateLineNumbers = (): void => {
+        const lineTotal =
+          Math.max(
+            1,
+            contentInput.value.split('\n').length
+          );
+
+        const fragment =
+          document.createDocumentFragment();
+
+        for (
+          let index = 1;
+          index <= lineTotal;
+          index += 1
+        ) {
+          const span =
+            document.createElement(
+              'span'
+            );
+
+          span.textContent =
+            String(index);
+
+          fragment.appendChild(
+            span
+          );
         }
-      );
-    });
 
-    /*
-     * =========================================================
-     * CONTENT SCROLL
-     * =========================================================
-     */
-
-    contentInput.addEventListener(
-      'scroll',
-      () => {
-
-        if (!lineNumbers) {
-          return;
-        }
+        lineNumbers.replaceChildren(
+          fragment
+        );
 
         lineNumbers.scrollTop =
           contentInput.scrollTop;
-      }
-    );
+      };
 
-    /*
-     * =========================================================
-     * TAB SUPPORT
-     * =========================================================
-     */
+      /*
+       * ======================================================
+       * PREVIEW METADATA
+       * ======================================================
+       */
 
-    contentInput.addEventListener(
-      'keydown',
-      (event) => {
+      const updatePreviewMetadata =
+        (): void => {
+          const title =
+            titleInput.value.trim();
 
-        if (event.key !== 'Tab') {
+          const artist =
+            artistInput.value.trim();
+
+          const key =
+            keyInput.value.trim();
+
+          previewTitle.textContent =
+            title ||
+            'Untitled song';
+
+          previewArtist.textContent =
+            artist ||
+            'Unknown artist';
+
+          previewKey.textContent =
+            key;
+
+          previewKeyWrap.hidden =
+            key.length === 0;
+        };
+
+      /*
+       * ======================================================
+       * PREVIEW BLOCK RENDERING
+       * ======================================================
+       */
+
+      const createChordElement = (
+        chord: {
+          value: string;
+          position: number;
+        }
+      ): HTMLSpanElement => {
+        const element =
+          document.createElement(
+            'span'
+          );
+
+        element.className =
+          'preview-chord';
+
+        element.dataset.position =
+          String(
+            chord.position
+          );
+
+        element.textContent =
+          chord.value;
+
+        return element;
+      };
+
+      const createLyricElement = (
+        value: string
+      ): HTMLSpanElement => {
+        const element =
+          document.createElement(
+            'span'
+          );
+
+        element.className =
+          'preview-lyric';
+
+        element.textContent =
+          value;
+
+        return element;
+      };
+
+      const renderPreview = (): void => {
+        const raw =
+          contentInput.value;
+
+        if (!raw.trim()) {
+          const placeholder =
+            document.createElement(
+              'div'
+            );
+
+          placeholder.className =
+            'preview-placeholder';
+
+          placeholder.textContent =
+            'Mulai mengetik chord dan lirik untuk melihat preview.';
+
+          previewContent.replaceChildren(
+            placeholder
+          );
+
           return;
         }
 
-        event.preventDefault();
+        let parsed:
+          | PreviewBlock[]
+          | null = null;
 
-        const start =
-          contentInput.selectionStart;
-
-        const end =
-          contentInput.selectionEnd;
-
-        const before =
-          contentInput.value.slice(
-            0,
-            start
+        try {
+          parsed =
+            parseSongContent(
+              raw
+            ) as PreviewBlock[];
+        } catch (error) {
+          console.error(
+            'Preview parser error:',
+            error
           );
 
-        const after =
-          contentInput.value.slice(
-            end
+          const fallback =
+            document.createElement(
+              'div'
+            );
+
+          fallback.className =
+            'preview-parse-error';
+
+          fallback.textContent =
+            'Preview belum dapat membaca format ini. Data tetap bisa disimpan.';
+
+          previewContent.replaceChildren(
+            fallback
           );
 
-        contentInput.value =
-          `${before}  ${after}`;
+          return;
+        }
 
-        contentInput.selectionStart =
-          start + 2;
+        const fragment =
+          document.createDocumentFragment();
 
-        contentInput.selectionEnd =
-          start + 2;
+        parsed.forEach(
+          (
+            block,
+            index
+          ) => {
 
-        updatePreview();
-        checkDirtyState();
-      }
-    );
+            if (
+              block.type === 'blank'
+            ) {
+              const element =
+                document.createElement(
+                  'div'
+                );
 
-    /*
-     * =========================================================
-     * FORMAT INSERT
-     * =========================================================
-     */
+              element.className =
+                'preview-empty-line';
 
-    document
-      .querySelectorAll('[data-insert]')
-      .forEach((button) => {
-
-        button.addEventListener(
-          'click',
-          () => {
-
-            const value =
-              button.dataset.insert || '';
-
-            const start =
-              contentInput.selectionStart;
-
-            const end =
-              contentInput.selectionEnd;
-
-            const text =
-              contentInput.value;
-
-            const before =
-              text.slice(
-                0,
-                start
+              element.style.setProperty(
+                '--preview-index',
+                String(index)
               );
 
-            const after =
-              text.slice(end);
+              fragment.appendChild(
+                element
+              );
 
-            const needsNewLine =
-              before.length > 0 &&
-              !before.endsWith('\n');
+              return;
+            }
 
-            const insertion =
-              `${needsNewLine ? '\n' : ''}${value}\n`;
+            if (
+              block.type ===
+              'section'
+            ) {
+              const wrapper =
+                document.createElement(
+                  'div'
+                );
 
-            contentInput.value =
-              `${before}${insertion}${after}`;
+              wrapper.className =
+                'preview-section';
 
-            const cursor =
-              start + insertion.length;
+              wrapper.style.setProperty(
+                '--preview-index',
+                String(index)
+              );
 
-            contentInput.selectionStart =
-              cursor;
+              const line =
+                document.createElement(
+                  'span'
+                );
 
-            contentInput.selectionEnd =
-              cursor;
+              line.className =
+                'preview-section-line';
 
-            contentInput.focus();
+              const label =
+                document.createElement(
+                  'span'
+                );
 
-            updatePreview();
-            checkDirtyState();
+              label.textContent =
+                String(
+                  block.value || ''
+                )
+                  .replace(
+                    /^\[/,
+                    ''
+                  )
+                  .replace(
+                    /\]$/,
+                    ''
+                  )
+                  .trim();
+
+              wrapper.append(
+                line,
+                label
+              );
+
+              fragment.appendChild(
+                wrapper
+              );
+
+              return;
+            }
+
+            if (
+              block.type === 'line'
+            ) {
+              const wrapper =
+                document.createElement(
+                  'div'
+                );
+
+              wrapper.className =
+                'preview-line';
+
+              wrapper.style.setProperty(
+                '--preview-index',
+                String(index)
+              );
+
+              const chordRow =
+                document.createElement(
+                  'div'
+                );
+
+              chordRow.className =
+                'preview-chord-row';
+
+              block.chords.forEach(
+                (chord) => {
+                  chordRow.appendChild(
+                    createChordElement(
+                      chord
+                    )
+                  );
+                }
+              );
+
+              const lyricRow =
+                document.createElement(
+                  'div'
+                );
+
+              lyricRow.className =
+                'preview-lyric-row';
+
+              lyricRow.appendChild(
+                createLyricElement(
+                  block.lyric
+                )
+              );
+
+              wrapper.append(
+                chordRow,
+                lyricRow
+              );
+
+              fragment.appendChild(
+                wrapper
+              );
+
+              return;
+            }
+
+            if (
+              block.type ===
+              'instrumental'
+            ) {
+              const wrapper =
+                document.createElement(
+                  'div'
+                );
+
+              wrapper.className =
+                'preview-line preview-instrumental-line';
+
+              wrapper.style.setProperty(
+                '--preview-index',
+                String(index)
+              );
+
+              const chordRow =
+                document.createElement(
+                  'div'
+                );
+
+              chordRow.className =
+                'preview-chord-row'
+                + ' preview-chord-row-only';
+
+              block.chords.forEach(
+                (chord) => {
+                  chordRow.appendChild(
+                    createChordElement(
+                      chord
+                    )
+                  );
+                }
+              );
+
+              wrapper.appendChild(
+                chordRow
+              );
+
+              fragment.appendChild(
+                wrapper
+              );
+
+              return;
+            }
+
+            if (
+              block.type === 'lyric'
+            ) {
+              const wrapper =
+                document.createElement(
+                  'div'
+                );
+
+              wrapper.className =
+                'preview-line preview-lyric-only';
+
+              wrapper.style.setProperty(
+                '--preview-index',
+                String(index)
+              );
+
+              wrapper.appendChild(
+                createLyricElement(
+                  block.lyric
+                )
+              );
+
+              fragment.appendChild(
+                wrapper
+              );
+            }
           }
         );
-      });
 
-    /*
-     * =========================================================
-     * PREVIEW BUTTON
-     * =========================================================
-     */
+        previewContent.replaceChildren(
+          fragment
+        );
+      };
 
-    if (previewBtn) {
+      /*
+       * ======================================================
+       * FULL PREVIEW UPDATE
+       * ======================================================
+       */
+
+      const updatePreview = (): void => {
+        updatePreviewMetadata();
+        renderPreview();
+        updateStats();
+        updateLineNumbers();
+      };
+
+      /*
+       * ======================================================
+       * DIRTY STATE
+       * ======================================================
+       */
+
+      const updateDirtyState =
+        (): void => {
+          const dirty =
+            titleInput.value.trim() !== '' ||
+            artistInput.value.trim() !== '' ||
+            keyInput.value.trim() !== '' ||
+            contentInput.value.trim() !== '';
+
+          isDirty =
+            dirty &&
+            !isSaving;
+
+          setSaveStatus(
+            dirty
+              ? 'DRAFT'
+              : 'NEW',
+            dirty
+          );
+        };
+
+      /*
+       * ======================================================
+       * INPUT EVENTS
+       * ======================================================
+       */
+
+      const watchedInputs = [
+        titleInput,
+        artistInput,
+        keyInput,
+        contentInput,
+      ];
+
+      watchedInputs.forEach(
+        (input) => {
+          input.addEventListener(
+            'input',
+            () => {
+              updatePreview();
+              updateDirtyState();
+            }
+          );
+        }
+      );
+
+      /*
+       * ======================================================
+       * TEXTAREA SCROLL
+       * ======================================================
+       */
+
+      contentInput.addEventListener(
+        'scroll',
+        () => {
+          lineNumbers.scrollTop =
+            contentInput.scrollTop;
+        }
+      );
+
+      /*
+       * ======================================================
+       * TAB INSERT
+       * ======================================================
+       */
+
+      contentInput.addEventListener(
+        'keydown',
+        (event) => {
+          if (
+            event.key !== 'Tab'
+          ) {
+            return;
+          }
+
+          event.preventDefault();
+
+          const start =
+            contentInput.selectionStart;
+
+          const end =
+            contentInput.selectionEnd;
+
+          const before =
+            contentInput.value.slice(
+              0,
+              start
+            );
+
+          const after =
+            contentInput.value.slice(
+              end
+            );
+
+          contentInput.value =
+            `${before}  ${after}`;
+
+          const nextCursor =
+            start + 2;
+
+          contentInput.selectionStart =
+            nextCursor;
+
+          contentInput.selectionEnd =
+            nextCursor;
+
+          updatePreview();
+          updateDirtyState();
+        }
+      );
+
+      /*
+       * ======================================================
+       * FORMAT INSERT
+       * ======================================================
+       */
+
+      document
+        .querySelectorAll<HTMLButtonElement>(
+          '[data-insert]'
+        )
+        .forEach(
+          (button) => {
+            button.addEventListener(
+              'click',
+              () => {
+                const value =
+                  button.dataset.insert ||
+                  '';
+
+                const start =
+                  contentInput.selectionStart;
+
+                const end =
+                  contentInput.selectionEnd;
+
+                const current =
+                  contentInput.value;
+
+                const before =
+                  current.slice(
+                    0,
+                    start
+                  );
+
+                const after =
+                  current.slice(
+                    end
+                  );
+
+                const prefix =
+                  before.length > 0 &&
+                  !before.endsWith('\n')
+                    ? '\n'
+                    : '';
+
+                const suffix =
+                  '\n';
+
+                const insertion =
+                  `${prefix}${value}${suffix}`;
+
+                contentInput.value =
+                  `${before}${insertion}${after}`;
+
+                const nextCursor =
+                  start +
+                  insertion.length;
+
+                contentInput.selectionStart =
+                  nextCursor;
+
+                contentInput.selectionEnd =
+                  nextCursor;
+
+                contentInput.focus();
+
+                updatePreview();
+                updateDirtyState();
+              }
+            );
+          }
+        );
+
+      /*
+       * ======================================================
+       * PREVIEW BUTTON
+       * ======================================================
+       */
 
       previewBtn.addEventListener(
         'click',
         () => {
-
           updatePreview();
 
           const panel =
-            document.querySelector(
+            document.querySelector<HTMLElement>(
               '.preview-panel'
             );
 
-          if (panel) {
-            panel.scrollIntoView({
-              behavior: 'smooth',
-              block: 'start',
-            });
-          }
+          panel?.scrollIntoView({
+            behavior:
+              window.matchMedia(
+                '(prefers-reduced-motion: reduce)'
+              ).matches
+                ? 'auto'
+                : 'smooth',
+            block: 'start',
+          });
         }
       );
-    }
 
-    /*
-     * =========================================================
-     * CANCEL
-     * =========================================================
-     */
-
-    if (cancelBtn) {
+      /*
+       * ======================================================
+       * CANCEL
+       * ======================================================
+       */
 
       cancelBtn.addEventListener(
         'click',
         () => {
-
           if (isDirty) {
-
             const confirmed =
               window.confirm(
                 'Data yang sudah kamu masukkan akan hilang. Kembali ke library?'
@@ -994,248 +1465,276 @@ const base = import.meta.env.BASE_URL || '';
             }
           }
 
-          window.location.href =
-            `${basePath}/admin`;
+          window.location.assign(
+            `${basePath}/admin`
+          );
         }
       );
-    }
 
-    /*
-     * =========================================================
-     * SAVE
-     * =========================================================
-     */
+      /*
+       * ======================================================
+       * SAVE
+       * ======================================================
+       */
 
-    form.addEventListener(
-      'submit',
-      async (event) => {
+      form.addEventListener(
+        'submit',
+        async (event) => {
+          event.preventDefault();
 
-        event.preventDefault();
+          if (isSaving) {
+            return;
+          }
 
-        const title =
-          titleInput.value.trim();
+          const title =
+            titleInput.value.trim();
 
-        const artist =
-          artistInput.value.trim();
+          const artist =
+            artistInput.value.trim();
 
-        const key =
-          keyInput.value.trim();
+          const key =
+            keyInput.value
+              .trim()
+              .replace(/\s+/g, ' ');
 
-        const content =
-          contentInput.value.trim();
+          const content =
+            contentInput.value.trim();
 
-        if (!title) {
-          alert(
-            'Judul lagu harus diisi.'
-          );
-
-          titleInput.focus();
-
-          return;
-        }
-
-        if (!artist) {
-          alert(
-            'Artis harus diisi.'
-          );
-
-          artistInput.focus();
-
-          return;
-        }
-
-        if (!content) {
-          alert(
-            'Isi chord harus diisi.'
-          );
-
-          contentInput.focus();
-
-          return;
-        }
-
-        if (saveBtn) {
-          saveBtn.disabled = true;
-        }
-
-        if (saveLabel) {
-          saveLabel.textContent =
-            'Menyimpan...';
-        }
-
-        if (saveStatus) {
-          saveStatus.textContent =
-            'SAVING...';
-
-          saveStatus.classList.remove(
-            'is-draft'
-          );
-        }
-
-        try {
-
-          const response =
-            await fetch(
-              `${basePath}/api/admin/chords`,
-              {
-                method: 'POST',
-
-                headers: {
-                  'Content-Type':
-                    'application/json',
-                },
-
-                body: JSON.stringify({
-                  title,
-                  artist,
-                  key,
-                  content,
-                }),
-              }
+          if (!title) {
+            window.alert(
+              'Judul lagu harus diisi.'
             );
 
-          if (!response.ok) {
+            focusField(
+              titleInput
+            );
 
-            let message =
-              'Gagal menyimpan chord.';
-
-            try {
-
-              const data =
-                await response.json();
-
-              if (
-                data &&
-                typeof data.error ===
-                  'string'
-              ) {
-                message =
-                  data.error;
-              }
-
-            } catch {
-              // Response bukan JSON.
-            }
-
-            throw new Error(message);
+            return;
           }
 
-          if (saveLabel) {
-            saveLabel.textContent =
-              'Saved';
+          if (!artist) {
+            window.alert(
+              'Artis harus diisi.'
+            );
+
+            focusField(
+              artistInput
+            );
+
+            return;
           }
 
-          if (saveStatus) {
-            saveStatus.textContent =
-              'SAVED';
+          if (!content) {
+            window.alert(
+              'Isi chord harus diisi.'
+            );
+
+            focusField(
+              contentInput
+            );
+
+            return;
           }
+
+          isSaving = true;
 
           isDirty = false;
 
-          setTimeout(() => {
-            window.location.href =
-              `${basePath}/admin`;
-          }, 350);
+          saveBtn.disabled = true;
 
-        } catch (error) {
+          cancelBtn.disabled =
+            true;
 
-          console.error(
-            'Create chord error:',
-            error
+          previewBtn.disabled =
+            true;
+
+          saveLabel.textContent =
+            'Menyimpan…';
+
+          setSaveStatus(
+            'SAVING...'
           );
 
-          if (saveLabel) {
+          try {
+            const response =
+              await fetch(
+                `${basePath}/api/admin/chords`,
+                {
+                  method: 'POST',
+
+                  credentials:
+                    'same-origin',
+
+                  headers: {
+                    'Content-Type':
+                      'application/json',
+
+                    Accept:
+                      'application/json',
+                  },
+
+                  body:
+                    JSON.stringify({
+                      title,
+                      artist,
+                      key,
+                      content,
+                    }),
+                }
+              );
+
+            if (!response.ok) {
+              let message =
+                'Gagal menyimpan chord.';
+
+              try {
+                const data =
+                  await response.json();
+
+                if (
+                  data &&
+                  typeof data.error ===
+                    'string' &&
+                  data.error.trim()
+                ) {
+                  message =
+                    data.error;
+                } else if (
+                  data &&
+                  typeof data.message ===
+                    'string' &&
+                  data.message.trim()
+                ) {
+                  message =
+                    data.message;
+                }
+              } catch {
+                // Non-JSON response.
+              }
+
+              throw new Error(
+                message
+              );
+            }
+
+            saveLabel.textContent =
+              'Tersimpan';
+
+            setSaveStatus(
+              'SAVED'
+            );
+
+            window.setTimeout(
+              () => {
+                window.location.assign(
+                  `${basePath}/admin`
+                );
+              },
+              350
+            );
+          } catch (error) {
+            console.error(
+              'Create chord error:',
+              error
+            );
+
+            isSaving = false;
+
+            isDirty = true;
+
+            saveBtn.disabled =
+              false;
+
+            cancelBtn.disabled =
+              false;
+
+            previewBtn.disabled =
+              false;
+
             saveLabel.textContent =
               'Simpan chord';
-          }
 
-          if (saveStatus) {
-            saveStatus.textContent =
-              'ERROR';
-          }
+            setSaveStatus(
+              'ERROR',
+              true
+            );
 
-          if (saveBtn) {
-            saveBtn.disabled = false;
+            window.alert(
+              error instanceof Error
+                ? error.message
+                : 'Gagal menyimpan chord.'
+            );
           }
-
-          alert(
-            error instanceof Error
-              ? error.message
-              : 'Gagal menyimpan chord.'
-          );
         }
-      }
-    );
+      );
 
-    /*
-     * =========================================================
-     * CTRL / CMD + S
-     * =========================================================
-     */
+      /*
+       * ======================================================
+       * CMD/CTRL + S
+       * ======================================================
+       */
 
-    window.addEventListener(
-      'keydown',
-      (event) => {
+      const handleSaveShortcut =
+        (event: KeyboardEvent) => {
+          if (
+            (event.ctrlKey ||
+              event.metaKey) &&
+            event.key.toLowerCase() ===
+              's'
+          ) {
+            event.preventDefault();
 
-        const modifier =
-          event.ctrlKey ||
-          event.metaKey;
+            if (!isSaving) {
+              form.requestSubmit();
+            }
+          }
+        };
 
-        if (
-          modifier &&
-          event.key.toLowerCase() === 's'
-        ) {
+      window.addEventListener(
+        'keydown',
+        handleSaveShortcut
+      );
+
+      /*
+       * ======================================================
+       * BEFORE LEAVE
+       * ======================================================
+       */
+
+      const handleBeforeUnload =
+        (event: BeforeUnloadEvent) => {
+          if (!isDirty) {
+            return;
+          }
 
           event.preventDefault();
 
-          form.requestSubmit();
+          event.returnValue = '';
+        };
+
+      window.addEventListener(
+        'beforeunload',
+        handleBeforeUnload
+      );
+
+      /*
+       * ======================================================
+       * INITIAL STATE
+       * ======================================================
+       */
+
+      updatePreview();
+      updateDirtyState();
+
+      requestAnimationFrame(
+        () => {
+          page.classList.add(
+            'is-ready'
+          );
         }
-      }
-    );
-
-    /*
-     * =========================================================
-     * BEFORE LEAVE
-     * =========================================================
-     */
-
-    window.addEventListener(
-      'beforeunload',
-      (event) => {
-
-        if (!isDirty) {
-          return;
-        }
-
-        event.preventDefault();
-
-        event.returnValue = '';
-      }
-    );
-
-    /*
-     * =========================================================
-     * INITIAL STATE
-     * =========================================================
-     */
-
-    updatePreview();
-    checkDirtyState();
-
-    requestAnimationFrame(() => {
-
-      const page =
-        document.querySelector(
-          '.editor-page'
-        );
-
-      if (page) {
-        page.classList.add(
-          'is-ready'
-        );
-      }
-    });
-  }
+      );
+    }
+  );
 </script>
 
 <style is:global>
@@ -1258,11 +1757,40 @@ const base = import.meta.env.BASE_URL || '';
     margin: 0 auto;
 
     padding:
-      48px
-      28px
-      70px;
+      30px
+      14px
+      calc(
+        60px +
+        env(safe-area-inset-bottom)
+      );
 
     color: var(--ink);
+
+    -webkit-tap-highlight-color:
+      transparent;
+  }
+
+  .sr-only {
+    position: absolute;
+
+    width: 1px;
+    height: 1px;
+
+    padding: 0;
+    margin: -1px;
+
+    overflow: hidden;
+
+    clip: rect(
+      0,
+      0,
+      0,
+      0
+    );
+
+    white-space: nowrap;
+
+    border: 0;
   }
 
   /* =========================================================
@@ -1272,17 +1800,26 @@ const base = import.meta.env.BASE_URL || '';
   .editor-header {
     display: flex;
 
-    align-items: flex-end;
+    flex-direction: column;
 
-    justify-content: space-between;
+    align-items: stretch;
 
-    gap: 32px;
+    gap: 21px;
 
-    padding-bottom: 31px;
+    padding-bottom:
+      25px;
 
-    margin-bottom: 30px;
+    margin-bottom:
+      27px;
 
-    border-bottom: 1px solid var(--line);
+    border-bottom:
+      1px
+      solid
+      var(--line);
+  }
+
+  .editor-heading {
+    min-width: 0;
   }
 
   .back-link {
@@ -1292,15 +1829,20 @@ const base = import.meta.env.BASE_URL || '';
 
     gap: 7px;
 
-    margin-bottom: 19px;
+    margin-bottom:
+      17px;
 
-    color: var(--muted);
+    color:
+      var(--muted);
 
-    text-decoration: none;
+    text-decoration:
+      none;
 
-    font-size: 10px;
+    font-size:
+      10px;
 
-    font-weight: 650;
+    font-weight:
+      650;
 
     transition:
       color 150ms ease,
@@ -1308,22 +1850,34 @@ const base = import.meta.env.BASE_URL || '';
   }
 
   .back-link:hover {
-    color: var(--black);
-    transform: translateX(-2px);
+    color:
+      var(--black);
+
+    transform:
+      translateX(-2px);
   }
 
   .back-link svg {
-    width: 13px;
-    height: 13px;
+    width:
+      13px;
 
-    fill: none;
+    height:
+      13px;
 
-    stroke: currentColor;
+    fill:
+      none;
 
-    stroke-width: 1.7;
+    stroke:
+      currentColor;
 
-    stroke-linecap: round;
-    stroke-linejoin: round;
+    stroke-width:
+      1.7;
+
+    stroke-linecap:
+      round;
+
+    stroke-linejoin:
+      round;
   }
 
   .editor-eyebrow {
@@ -1333,9 +1887,11 @@ const base = import.meta.env.BASE_URL || '';
 
     gap: 8px;
 
-    margin-bottom: 12px;
+    margin-bottom:
+      11px;
 
-    color: var(--muted);
+    color:
+      var(--muted);
 
     font-family:
       ui-monospace,
@@ -1345,62 +1901,87 @@ const base = import.meta.env.BASE_URL || '';
       Consolas,
       monospace;
 
-    font-size: 8px;
+    font-size:
+      8px;
 
-    font-weight: 800;
+    font-weight:
+      800;
 
-    letter-spacing: 0.18em;
+    letter-spacing:
+      0.17em;
   }
 
   .eyebrow-line {
-    width: 20px;
-    height: 1px;
+    flex: 0 0 auto;
 
-    background: var(--black);
+    width:
+      19px;
+
+    height:
+      1px;
+
+    background:
+      var(--black);
   }
 
   .editor-heading h1 {
     margin: 0;
 
-    color: var(--black);
+    color:
+      var(--black);
 
     font-size:
-      clamp(2.5rem, 7vw, 4.8rem);
+      clamp(
+        2.7rem,
+        14vw,
+        4.8rem
+      );
 
-    line-height: 0.88;
+    line-height:
+      0.87;
 
-    font-weight: 900;
+    font-weight:
+      900;
 
-    letter-spacing: -0.07em;
+    letter-spacing:
+      -0.07em;
   }
 
   .editor-heading p {
-    max-width: 470px;
+    max-width:
+      390px;
 
     margin:
-      17px
+      15px
       0
       0;
 
-    color: var(--muted);
+    color:
+      var(--muted);
 
-    font-size: 12px;
+    font-size:
+      12px;
 
-    line-height: 1.7;
+    line-height:
+      1.7;
   }
 
   .editor-top-actions {
     display: flex;
 
-    align-items: center;
+    align-items:
+      center;
 
-    gap: 14px;
+    justify-content:
+      space-between;
 
-    padding-bottom: 4px;
+    gap:
+      12px;
   }
 
   .save-status {
-    color: var(--soft);
+    color:
+      var(--soft);
 
     font-family:
       ui-monospace,
@@ -1410,39 +1991,63 @@ const base = import.meta.env.BASE_URL || '';
       Consolas,
       monospace;
 
-    font-size: 7px;
+    font-size:
+      7px;
 
-    font-weight: 800;
+    font-weight:
+      800;
 
-    letter-spacing: 0.13em;
+    letter-spacing:
+      0.13em;
   }
 
   .save-status.is-draft {
-    color: var(--black);
+    color:
+      var(--black);
   }
 
   .preview-link {
-    display: inline-flex;
+    display:
+      inline-flex;
 
-    align-items: center;
+    align-items:
+      center;
 
-    gap: 7px;
+    justify-content:
+      center;
 
-    height: 34px;
+    gap:
+      7px;
 
-    padding: 0 11px;
+    min-width:
+      37px;
 
-    border: 1px solid var(--line);
+    height:
+      35px;
 
-    background: white;
+    padding:
+      0
+      11px;
 
-    color: var(--muted);
+    border:
+      1px
+      solid
+      var(--line);
 
-    text-decoration: none;
+    background:
+      white;
 
-    font-size: 9px;
+    color:
+      var(--muted);
 
-    font-weight: 700;
+    text-decoration:
+      none;
+
+    font-size:
+      9px;
+
+    font-weight:
+      700;
 
     transition:
       border-color 150ms ease,
@@ -1451,25 +2056,37 @@ const base = import.meta.env.BASE_URL || '';
   }
 
   .preview-link:hover {
-    border-color: var(--black);
+    border-color:
+      var(--black);
 
-    background: var(--black);
+    background:
+      var(--black);
 
-    color: white;
+    color:
+      white;
   }
 
   .preview-link svg {
-    width: 13px;
-    height: 13px;
+    width:
+      13px;
 
-    fill: none;
+    height:
+      13px;
 
-    stroke: currentColor;
+    fill:
+      none;
 
-    stroke-width: 1.5;
+    stroke:
+      currentColor;
 
-    stroke-linecap: round;
-    stroke-linejoin: round;
+    stroke-width:
+      1.5;
+
+    stroke-linecap:
+      round;
+
+    stroke-linejoin:
+      round;
   }
 
   /* =========================================================
@@ -1477,19 +2094,19 @@ const base = import.meta.env.BASE_URL || '';
   ========================================================== */
 
   .editor-layout {
-    display: grid;
+    display:
+      grid;
 
     grid-template-columns:
-      minmax(0, 1.35fr)
-      minmax(320px, 0.65fr);
+      minmax(0, 1fr);
 
-    align-items: start;
-
-    gap: 26px;
+    gap:
+      29px;
   }
 
   .editor-main {
-    min-width: 0;
+    min-width:
+      0;
   }
 
   /* =========================================================
@@ -1497,33 +2114,54 @@ const base = import.meta.env.BASE_URL || '';
   ========================================================== */
 
   .editor-section {
-    padding-bottom: 30px;
+    padding-bottom:
+      28px;
 
-    margin-bottom: 30px;
+    margin-bottom:
+      28px;
 
-    border-bottom: 1px solid var(--line);
+    border-bottom:
+      1px
+      solid
+      var(--line);
   }
 
   .section-heading {
-    display: flex;
+    display:
+      flex;
 
-    align-items: flex-end;
+    align-items:
+      flex-end;
 
-    justify-content: space-between;
+    justify-content:
+      space-between;
 
-    margin-bottom: 21px;
+    gap:
+      15px;
+
+    margin-bottom:
+      19px;
   }
 
-  .section-heading > div:first-child {
-    display: flex;
+  .section-heading-main {
+    display:
+      flex;
 
-    align-items: flex-start;
+    align-items:
+      flex-start;
 
-    gap: 13px;
+    gap:
+      12px;
+
+    min-width:
+      0;
   }
 
   .section-index {
-    color: #c4c4c4;
+    flex: 0 0 auto;
+
+    color:
+      #c4c4c4;
 
     font-family:
       ui-monospace,
@@ -1533,17 +2171,22 @@ const base = import.meta.env.BASE_URL || '';
       Consolas,
       monospace;
 
-    font-size: 9px;
+    font-size:
+      9px;
 
-    font-weight: 800;
+    font-weight:
+      800;
   }
 
   .section-kicker {
-    display: block;
+    display:
+      block;
 
-    margin-bottom: 5px;
+    margin-bottom:
+      5px;
 
-    color: var(--soft);
+    color:
+      var(--soft);
 
     font-family:
       ui-monospace,
@@ -1553,24 +2196,35 @@ const base = import.meta.env.BASE_URL || '';
       Consolas,
       monospace;
 
-    font-size: 7px;
+    font-size:
+      7px;
 
-    font-weight: 800;
+    font-weight:
+      800;
 
-    letter-spacing: 0.14em;
+    letter-spacing:
+      0.14em;
   }
 
   .section-heading h2,
   .preview-panel-header h2 {
-    margin: 0;
+    margin:
+      0;
 
-    color: var(--black);
+    color:
+      var(--black);
 
-    font-size: 18px;
+    font-size:
+      18px;
 
-    font-weight: 850;
+    line-height:
+      1.05;
 
-    letter-spacing: -0.03em;
+    font-weight:
+      850;
+
+    letter-spacing:
+      -0.03em;
   }
 
   /* =========================================================
@@ -1578,32 +2232,44 @@ const base = import.meta.env.BASE_URL || '';
   ========================================================== */
 
   .metadata-grid {
-    display: grid;
+    display:
+      grid;
 
     grid-template-columns:
-      minmax(0, 1.5fr)
-      minmax(0, 1fr)
-      100px;
+      minmax(0, 1fr);
 
-    gap: 11px;
+    gap:
+      11px;
   }
 
   .field {
-    display: flex;
+    display:
+      flex;
 
-    flex-direction: column;
+    flex-direction:
+      column;
 
-    gap: 7px;
+    gap:
+      7px;
+  }
+
+  .field-key {
+    max-width:
+      120px;
   }
 
   .field-label {
-    display: flex;
+    display:
+      flex;
 
-    align-items: center;
+    align-items:
+      center;
 
-    gap: 5px;
+    gap:
+      5px;
 
-    color: var(--muted);
+    color:
+      var(--muted);
 
     font-family:
       ui-monospace,
@@ -1613,21 +2279,27 @@ const base = import.meta.env.BASE_URL || '';
       Consolas,
       monospace;
 
-    font-size: 8px;
+    font-size:
+      8px;
 
-    font-weight: 800;
+    font-weight:
+      800;
 
-    letter-spacing: 0.05em;
+    letter-spacing:
+      0.05em;
 
-    text-transform: uppercase;
+    text-transform:
+      uppercase;
   }
 
   .field-label b {
-    color: var(--black);
+    color:
+      var(--black);
   }
 
   .field-label small {
-    color: var(--soft);
+    color:
+      var(--soft);
 
     font-family:
       Inter,
@@ -1635,40 +2307,49 @@ const base = import.meta.env.BASE_URL || '';
       system-ui,
       sans-serif;
 
-    font-size: 8px;
+    font-size:
+      8px;
 
-    font-weight: 500;
+    font-weight:
+      500;
 
-    text-transform: none;
+    text-transform:
+      none;
   }
 
   .field-input {
-    width: 100%;
+    width:
+      100%;
 
-    height: 43px;
+    height:
+      44px;
 
-    padding: 0 11px;
+    padding:
+      0
+      11px;
 
-    border: 1px solid var(--line);
+    border:
+      1px
+      solid
+      var(--line);
 
-    outline: none;
+    outline:
+      none;
 
-    background: white;
+    background:
+      white;
 
-    color: var(--black);
+    color:
+      var(--black);
 
-    font-family:
-      Inter,
-      ui-sans-serif,
-      system-ui,
-      -apple-system,
-      BlinkMacSystemFont,
-      "Segoe UI",
-      sans-serif;
+    font:
+      inherit;
 
-    font-size: 11px;
+    font-size:
+      14px;
 
-    font-weight: 550;
+    font-weight:
+      500;
 
     transition:
       border-color 150ms ease,
@@ -1676,22 +2357,31 @@ const base = import.meta.env.BASE_URL || '';
   }
 
   .field-input-large {
-    font-size: 12px;
+    font-size:
+      15px;
 
-    font-weight: 700;
+    font-weight:
+      700;
 
-    letter-spacing: -0.015em;
+    letter-spacing:
+      -0.015em;
   }
 
   .field-input:focus {
-    border-color: var(--black);
+    border-color:
+      var(--black);
 
     box-shadow:
-      0 0 0 1px var(--black);
+      0
+      0
+      0
+      1px
+      var(--black);
   }
 
   .field-input::placeholder {
-    color: #b0b0b0;
+    color:
+      #b0b0b0;
   }
 
   .key-input {
@@ -1703,37 +2393,58 @@ const base = import.meta.env.BASE_URL || '';
       Consolas,
       monospace;
 
-    font-weight: 800;
+    font-size:
+      13px;
+
+    font-weight:
+      800;
+
+    text-transform:
+      none;
   }
 
   /* =========================================================
-     CONTENT EDITOR
+     CONTENT HEADER
   ========================================================== */
 
   .editor-section-heading {
-    align-items: center;
+    align-items:
+      center;
   }
 
   .content-stats {
-    display: flex;
+    display:
+      flex;
 
-    align-items: center;
+    align-items:
+      center;
 
-    gap: 14px;
+    flex:
+      0
+      0
+      auto;
+
+    gap:
+      11px;
   }
 
   .content-stats > div {
-    display: flex;
+    display:
+      flex;
 
-    flex-direction: column;
+    flex-direction:
+      column;
 
-    align-items: flex-end;
+    align-items:
+      flex-end;
 
-    gap: 2px;
+    gap:
+      2px;
   }
 
   .content-stats span {
-    color: var(--soft);
+    color:
+      var(--soft);
 
     font-family:
       ui-monospace,
@@ -1743,15 +2454,19 @@ const base = import.meta.env.BASE_URL || '';
       Consolas,
       monospace;
 
-    font-size: 6px;
+    font-size:
+      6px;
 
-    font-weight: 800;
+    font-weight:
+      800;
 
-    letter-spacing: 0.12em;
+    letter-spacing:
+      0.12em;
   }
 
   .content-stats strong {
-    color: var(--black);
+    color:
+      var(--black);
 
     font-family:
       ui-monospace,
@@ -1761,24 +2476,31 @@ const base = import.meta.env.BASE_URL || '';
       Consolas,
       monospace;
 
-    font-size: 10px;
+    font-size:
+      9px;
 
-    font-weight: 800;
+    font-weight:
+      800;
   }
 
+  /* =========================================================
+     TOOLBAR
+  ========================================================== */
+
   .editor-toolbar {
-    display: flex;
+    display:
+      flex;
 
-    align-items: center;
+    flex-direction:
+      column;
 
-    justify-content: space-between;
+    align-items:
+      flex-start;
 
-    gap: 15px;
-
-    min-height: 38px;
+    gap:
+      8px;
 
     padding:
-      5px
       8px;
 
     border:
@@ -1786,25 +2508,33 @@ const base = import.meta.env.BASE_URL || '';
       solid
       var(--line);
 
-    border-bottom: 0;
+    border-bottom:
+      0;
 
-    background: var(--surface);
+    background:
+      var(--surface);
   }
 
   .toolbar-group {
-    display: flex;
+    display:
+      flex;
 
-    align-items: center;
+    align-items:
+      center;
 
-    gap: 5px;
+    flex-wrap:
+      wrap;
 
-    flex-wrap: wrap;
+    gap:
+      5px;
   }
 
   .toolbar-label {
-    margin-right: 4px;
+    margin-right:
+      3px;
 
-    color: var(--soft);
+    color:
+      var(--soft);
 
     font-family:
       ui-monospace,
@@ -1814,29 +2544,46 @@ const base = import.meta.env.BASE_URL || '';
       Consolas,
       monospace;
 
-    font-size: 6px;
+    font-size:
+      6px;
 
-    font-weight: 800;
+    font-weight:
+      800;
 
-    letter-spacing: 0.1em;
+    letter-spacing:
+      0.1em;
   }
 
   .toolbar-button {
-    height: 25px;
+    min-height:
+      27px;
 
-    padding: 0 8px;
+    padding:
+      0
+      8px;
 
-    border: 1px solid #dddddd;
+    border:
+      1px
+      solid
+      #dddddd;
 
-    background: white;
+    background:
+      white;
 
-    color: var(--muted);
+    color:
+      var(--muted);
 
-    font-size: 8px;
+    font-size:
+      8px;
 
-    font-weight: 700;
+    font-weight:
+      700;
 
-    cursor: pointer;
+    cursor:
+      pointer;
+
+    touch-action:
+      manipulation;
 
     transition:
       background 140ms ease,
@@ -1845,21 +2592,28 @@ const base = import.meta.env.BASE_URL || '';
   }
 
   .toolbar-button:hover {
-    border-color: var(--black);
+    border-color:
+      var(--black);
 
-    background: var(--black);
+    background:
+      var(--black);
 
-    color: white;
+    color:
+      white;
   }
 
   .toolbar-hint {
-    display: flex;
+    display:
+      flex;
 
-    align-items: center;
+    align-items:
+      center;
 
-    gap: 7px;
+    gap:
+      7px;
 
-    color: var(--soft);
+    color:
+      var(--soft);
 
     font-family:
       ui-monospace,
@@ -1869,39 +2623,57 @@ const base = import.meta.env.BASE_URL || '';
       Consolas,
       monospace;
 
-    font-size: 6px;
+    font-size:
+      6px;
 
-    white-space: nowrap;
+    white-space:
+      nowrap;
   }
 
+  /* =========================================================
+     TEXT EDITOR
+  ========================================================== */
+
   .editor-wrapper {
-    display: grid;
+    display:
+      grid;
 
     grid-template-columns:
-      42px
+      36px
       minmax(0, 1fr);
 
-    min-height: 560px;
+    min-height:
+      450px;
 
-    border: 1px solid var(--black);
+    border:
+      1px
+      solid
+      var(--black);
 
-    background: white;
+    background:
+      white;
   }
 
   .line-numbers {
-    overflow: hidden;
+    overflow:
+      hidden;
 
     padding:
-      15px
-      8px
-      15px
+      13px
+      7px
+      13px
       0;
 
-    border-right: 1px solid #ececec;
+    border-right:
+      1px
+      solid
+      #ececec;
 
-    background: #fafafa;
+    background:
+      #fafafa;
 
-    color: #b4b4b4;
+    color:
+      #b4b4b4;
 
     font-family:
       ui-monospace,
@@ -1911,38 +2683,58 @@ const base = import.meta.env.BASE_URL || '';
       Consolas,
       monospace;
 
-    font-size: 9px;
+    font-size:
+      8px;
 
-    line-height: 1.9;
+    line-height:
+      1.9;
 
-    text-align: right;
+    text-align:
+      right;
 
-    user-select: none;
+    user-select:
+      none;
   }
 
   .line-numbers span {
-    display: block;
+    display:
+      block;
 
     height:
-      calc(1em * 1.9);
+      calc(
+        1em *
+        1.9
+      );
   }
 
   .content-editor {
-    width: 100%;
+    width:
+      100%;
 
-    min-height: 560px;
+    min-height:
+      450px;
 
-    padding: 15px;
+    padding:
+      13px
+      10px;
 
-    border: 0;
+    border:
+      0;
 
-    outline: 0;
+    outline:
+      0;
 
-    resize: vertical;
+    resize:
+      vertical;
 
-    background: white;
+    overflow:
+      auto;
 
-    color: var(--black);
+    background:
+      white;
+
+    color:
+      var(--black);
 
     font-family:
       ui-monospace,
@@ -1953,35 +2745,53 @@ const base = import.meta.env.BASE_URL || '';
       "Liberation Mono",
       monospace;
 
-    font-size: 12px;
+    font-size:
+      12px;
 
-    line-height: 1.9;
+    line-height:
+      1.9;
 
-    tab-size: 2;
+    tab-size:
+      2;
+
+    caret-color:
+      var(--black);
   }
 
   .content-editor::selection {
-    background: #dcdcdc;
+    background:
+      #dcdcdc;
 
-    color: var(--black);
+    color:
+      var(--black);
   }
 
   .content-editor::placeholder {
-    color: #b1b1b1;
+    color:
+      #b1b1b1;
 
-    opacity: 1;
+    opacity:
+      1;
   }
 
   .editor-footer {
-    display: flex;
+    display:
+      flex;
 
-    align-items: center;
+    align-items:
+      center;
 
-    justify-content: space-between;
+    justify-content:
+      space-between;
 
-    padding-top: 8px;
+    gap:
+      10px;
 
-    color: var(--soft);
+    padding-top:
+      8px;
+
+    color:
+      var(--soft);
 
     font-family:
       ui-monospace,
@@ -1991,111 +2801,171 @@ const base = import.meta.env.BASE_URL || '';
       Consolas,
       monospace;
 
-    font-size: 6px;
+    font-size:
+      6px;
 
-    font-weight: 700;
+    font-weight:
+      700;
 
-    letter-spacing: 0.06em;
+    letter-spacing:
+      0.06em;
   }
 
   /* =========================================================
-     ACTIONS
+     FORM ACTIONS
   ========================================================== */
 
   .form-actions {
-    display: flex;
+    display:
+      grid;
 
-    justify-content: flex-end;
+    grid-template-columns:
+      1fr
+      1fr;
 
-    gap: 7px;
+    gap:
+      6px;
 
-    margin-top: 2px;
+    margin-top:
+      2px;
   }
 
   .cancel-button,
   .preview-button,
   .save-button {
-    display: inline-flex;
+    display:
+      inline-flex;
 
-    align-items: center;
+    align-items:
+      center;
 
-    justify-content: center;
+    justify-content:
+      center;
 
-    gap: 7px;
+    gap:
+      7px;
 
-    height: 38px;
+    min-height:
+      40px;
 
-    padding: 0 13px;
+    padding:
+      0
+      12px;
 
-    font-size: 9px;
+    font-size:
+      9px;
 
-    font-weight: 750;
+    font-weight:
+      750;
 
-    cursor: pointer;
+    cursor:
+      pointer;
+
+    touch-action:
+      manipulation;
 
     transition:
       background 150ms ease,
       color 150ms ease,
-      border-color 150ms ease;
+      border-color 150ms ease,
+      opacity 150ms ease;
   }
 
   .cancel-button {
-    border: 1px solid transparent;
+    border:
+      1px
+      solid
+      transparent;
 
-    background: transparent;
+    background:
+      transparent;
 
-    color: var(--muted);
+    color:
+      var(--muted);
   }
 
   .cancel-button:hover {
-    color: var(--black);
+    color:
+      var(--black);
   }
 
   .preview-button {
-    border: 1px solid var(--line);
+    border:
+      1px
+      solid
+      var(--line);
 
-    background: white;
+    background:
+      white;
 
-    color: var(--black);
+    color:
+      var(--black);
   }
 
   .preview-button:hover {
-    border-color: var(--black);
+    border-color:
+      var(--black);
   }
 
   .save-button {
-    border: 1px solid var(--black);
+    grid-column:
+      1 / -1;
 
-    background: var(--black);
+    order:
+      -1;
 
-    color: white;
+    border:
+      1px
+      solid
+      var(--black);
+
+    background:
+      var(--black);
+
+    color:
+      white;
   }
 
   .save-button:hover {
-    background: white;
+    background:
+      white;
 
-    color: var(--black);
+    color:
+      var(--black);
   }
 
+  .cancel-button:disabled,
+  .preview-button:disabled,
   .save-button:disabled {
-    opacity: 0.45;
+    opacity:
+      0.45;
 
-    cursor: wait;
+    cursor:
+      wait;
   }
 
   .preview-button svg,
   .save-button svg {
-    width: 12px;
-    height: 12px;
+    width:
+      12px;
 
-    fill: none;
+    height:
+      12px;
 
-    stroke: currentColor;
+    fill:
+      none;
 
-    stroke-width: 1.5;
+    stroke:
+      currentColor;
 
-    stroke-linecap: round;
-    stroke-linejoin: round;
+    stroke-width:
+      1.5;
+
+    stroke-linecap:
+      round;
+
+    stroke-linejoin:
+      round;
   }
 
   /* =========================================================
@@ -2103,37 +2973,57 @@ const base = import.meta.env.BASE_URL || '';
   ========================================================== */
 
   .preview-panel {
-    position: sticky;
+    min-width:
+      0;
 
-    top: 18px;
+    border:
+      1px
+      solid
+      var(--line);
 
-    min-width: 0;
-
-    border: 1px solid var(--line);
-
-    background: white;
+    background:
+      white;
   }
 
   .preview-panel-header {
-    display: flex;
+    display:
+      flex;
 
-    align-items: flex-end;
+    align-items:
+      flex-end;
 
-    justify-content: space-between;
+    justify-content:
+      space-between;
 
-    padding: 15px;
+    gap:
+      12px;
 
-    border-bottom: 1px solid var(--line);
+    padding:
+      15px;
+
+    border-bottom:
+      1px
+      solid
+      var(--line);
   }
 
   .preview-state {
+    flex:
+      0
+      0
+      auto;
+
     padding:
       4px
       6px;
 
-    border: 1px solid var(--line);
+    border:
+      1px
+      solid
+      var(--line);
 
-    color: var(--soft);
+    color:
+      var(--soft);
 
     font-family:
       ui-monospace,
@@ -2143,34 +3033,40 @@ const base = import.meta.env.BASE_URL || '';
       Consolas,
       monospace;
 
-    font-size: 6px;
+    font-size:
+      6px;
 
-    font-weight: 800;
+    font-weight:
+      800;
 
-    letter-spacing: 0.1em;
+    letter-spacing:
+      0.1em;
   }
 
   .song-preview {
     padding:
-      25px
-      19px
-      35px;
+      23px
+      17px
+      31px;
 
-    max-height: 760px;
-
-    overflow: auto;
+    overflow:
+      auto;
   }
 
   .preview-song-header {
-    margin-bottom: 29px;
+    margin-bottom:
+      27px;
   }
 
   .preview-eyebrow {
-    display: block;
+    display:
+      block;
 
-    margin-bottom: 10px;
+    margin-bottom:
+      9px;
 
-    color: var(--soft);
+    color:
+      var(--soft);
 
     font-family:
       ui-monospace,
@@ -2180,50 +3076,75 @@ const base = import.meta.env.BASE_URL || '';
       Consolas,
       monospace;
 
-    font-size: 6px;
+    font-size:
+      6px;
 
-    font-weight: 800;
+    font-weight:
+      800;
 
-    letter-spacing: 0.16em;
+    letter-spacing:
+      0.16em;
   }
 
   .preview-song-header h3 {
-    margin: 0;
+    margin:
+      0;
 
-    color: var(--black);
+    overflow-wrap:
+      anywhere;
+
+    color:
+      var(--black);
 
     font-size:
-      clamp(1.5rem, 3vw, 2.25rem);
+      clamp(
+        1.7rem,
+        8vw,
+        2.4rem
+      );
 
-    line-height: 0.98;
+    line-height:
+      0.98;
 
-    font-weight: 900;
+    font-weight:
+      900;
 
-    letter-spacing: -0.055em;
+    letter-spacing:
+      -0.055em;
   }
 
   .preview-meta {
-    display: flex;
+    display:
+      flex;
 
-    align-items: center;
+    align-items:
+      center;
 
-    flex-wrap: wrap;
+    flex-wrap:
+      wrap;
 
-    gap: 8px;
+    gap:
+      8px;
 
-    margin-top: 11px;
+    margin-top:
+      11px;
 
-    color: var(--muted);
+    color:
+      var(--muted);
 
-    font-size: 9px;
+    font-size:
+      9px;
   }
 
   .preview-key-wrap {
-    display: inline-flex;
+    display:
+      inline-flex;
 
-    align-items: center;
+    align-items:
+      center;
 
-    gap: 8px;
+    gap:
+      8px;
 
     font-family:
       ui-monospace,
@@ -2235,27 +3156,44 @@ const base = import.meta.env.BASE_URL || '';
   }
 
   .preview-key-wrap[hidden] {
-    display: none;
+    display:
+      none;
   }
 
   .preview-key-wrap strong {
-    margin-left: 4px;
+    margin-left:
+      4px;
 
-    color: var(--black);
+    color:
+      var(--black);
 
-    font-weight: 800;
+    font-weight:
+      800;
   }
 
   .preview-dot {
-    width: 3px;
-    height: 3px;
+    flex:
+      0
+      0
+      auto;
 
-    border-radius: 50%;
+    width:
+      3px;
 
-    background: #cfcfcf;
+    height:
+      3px;
+
+    border-radius:
+      50%;
+
+    background:
+      #cfcfcf;
   }
 
   .preview-content {
+    min-height:
+      180px;
+
     font-family:
       ui-monospace,
       SFMono-Regular,
@@ -2267,10 +3205,11 @@ const base = import.meta.env.BASE_URL || '';
 
   .preview-placeholder {
     padding:
-      25px
-      10px;
+      24px
+      8px;
 
-    color: #b4b4b4;
+    color:
+      #b4b4b4;
 
     font-family:
       Inter,
@@ -2278,58 +3217,114 @@ const base = import.meta.env.BASE_URL || '';
       system-ui,
       sans-serif;
 
-    font-size: 10px;
+    font-size:
+      10px;
 
-    line-height: 1.7;
+    line-height:
+      1.7;
 
-    text-align: center;
+    text-align:
+      center;
+  }
+
+  .preview-parse-error {
+    padding:
+      20px
+      10px;
+
+    border:
+      1px
+      dashed
+      var(--line);
+
+    color:
+      var(--muted);
+
+    font-family:
+      Inter,
+      ui-sans-serif,
+      system-ui,
+      sans-serif;
+
+    font-size:
+      10px;
+
+    line-height:
+      1.7;
+
+    text-align:
+      center;
   }
 
   .preview-line {
-    min-height: 25px;
-
-    line-height: 1.9;
+    min-height:
+      27px;
 
     animation:
       previewLineIn
-      250ms
-      cubic-bezier(0.22, 1, 0.36, 1)
+      220ms
+      cubic-bezier(
+        0.22,
+        1,
+        0.36,
+        1
+      )
       both;
 
     animation-delay:
       calc(
         var(--preview-index) *
-        12ms
+        8ms
       );
   }
 
-  .preview-empty-line {
-    height: 16px;
+  .preview-chord-row {
+    display:
+      flex;
+
+    align-items:
+      flex-end;
+
+    flex-wrap:
+      wrap;
+
+    gap:
+      5px;
+
+    min-height:
+      12px;
+
+    margin-bottom:
+      1px;
+  }
+
+  .preview-chord-row-only {
+    margin-bottom:
+      3px;
   }
 
   .preview-chord {
-    display: inline-block;
+    color:
+      var(--black);
 
-    margin-right: 2px;
+    font-size:
+      8px;
 
-    color: var(--black);
+    line-height:
+      1;
 
-    font-size: 8px;
+    font-weight:
+      900;
+  }
 
-    font-weight: 900;
-
-    line-height: 1;
-
-    transform:
-      translateY(-0.48rem);
+  .preview-lyric-row {
+    min-height:
+      20px;
   }
 
   .preview-lyric {
-    display: inline;
-
-    margin-right: 1px;
-
-    color: #202020;
+    color:
+      #202020;
 
     font-family:
       Inter,
@@ -2340,26 +3335,54 @@ const base = import.meta.env.BASE_URL || '';
       "Segoe UI",
       sans-serif;
 
-    font-size: 10px;
+    font-size:
+      10px;
 
-    line-height: 1.75;
+    line-height:
+      1.72;
+
+    overflow-wrap:
+      anywhere;
+  }
+
+  .preview-lyric-only {
+    min-height:
+      25px;
+  }
+
+  .preview-instrumental-line {
+    min-height:
+      26px;
+
+    margin-bottom:
+      4px;
+  }
+
+  .preview-empty-line {
+    height:
+      14px;
   }
 
   .preview-section {
-    display: flex;
+    display:
+      flex;
 
-    align-items: center;
+    align-items:
+      center;
 
-    gap: 8px;
+    gap:
+      8px;
 
-    width: 100%;
+    width:
+      100%;
 
     margin:
-      19px
+      18px
       0
       9px;
 
-    color: var(--black);
+    color:
+      var(--black);
 
     font-family:
       ui-monospace,
@@ -2369,38 +3392,57 @@ const base = import.meta.env.BASE_URL || '';
       Consolas,
       monospace;
 
-    font-size: 7px;
+    font-size:
+      7px;
 
-    font-weight: 850;
+    font-weight:
+      850;
 
-    letter-spacing: 0.13em;
+    letter-spacing:
+      0.13em;
 
-    text-transform: uppercase;
+    text-transform:
+      uppercase;
   }
 
   .preview-section-line {
-    width: 18px;
-    height: 1px;
+    width:
+      18px;
 
-    background: var(--black);
+    height:
+      1px;
+
+    flex:
+      0 0 auto;
+
+    background:
+      var(--black);
   }
 
   .preview-footer {
-    display: flex;
+    display:
+      flex;
 
-    align-items: center;
+    align-items:
+      center;
 
-    justify-content: space-between;
+    justify-content:
+      space-between;
 
-    gap: 10px;
+    gap:
+      10px;
 
     padding:
       9px
       13px;
 
-    border-top: 1px solid var(--line);
+    border-top:
+      1px
+      solid
+      var(--line);
 
-    color: var(--soft);
+    color:
+      var(--soft);
 
     font-family:
       ui-monospace,
@@ -2410,61 +3452,83 @@ const base = import.meta.env.BASE_URL || '';
       Consolas,
       monospace;
 
-    font-size: 6px;
+    font-size:
+      6px;
 
-    font-weight: 700;
+    font-weight:
+      700;
   }
 
   @keyframes previewLineIn {
     from {
-      opacity: 0;
+      opacity:
+        0;
+
       transform:
         translateY(4px);
     }
 
     to {
-      opacity: 1;
+      opacity:
+        1;
+
       transform:
         translateY(0);
     }
   }
 
   /* =========================================================
-     FOOTER
+     BOTTOM FOOTER
   ========================================================== */
 
   .editor-bottom {
-    display: flex;
+    display:
+      flex;
 
-    align-items: center;
+    align-items:
+      flex-start;
 
-    justify-content: space-between;
+    flex-direction:
+      column;
 
-    gap: 20px;
+    gap:
+      9px;
 
-    margin-top: 43px;
+    margin-top:
+      38px;
 
-    padding-top: 13px;
+    padding-top:
+      12px;
 
-    border-top: 1px solid var(--line);
+    border-top:
+      1px
+      solid
+      var(--line);
 
-    color: var(--soft);
+    color:
+      var(--soft);
 
-    font-size: 8px;
+    font-size:
+      8px;
 
-    line-height: 1.6;
+    line-height:
+      1.6;
   }
 
   .editor-bottom > div {
-    display: flex;
+    display:
+      flex;
 
-    align-items: center;
+    align-items:
+      center;
 
-    gap: 8px;
+    gap:
+      8px;
   }
 
   .danger-label {
-    color: var(--soft);
+    color:
+      var(--soft);
 
     font-family:
       ui-monospace,
@@ -2474,11 +3538,14 @@ const base = import.meta.env.BASE_URL || '';
       Consolas,
       monospace;
 
-    font-size: 6px;
+    font-size:
+      6px;
 
-    font-weight: 800;
+    font-weight:
+      800;
 
-    letter-spacing: 0.1em;
+    letter-spacing:
+      0.1em;
   }
 
   .editor-bottom code {
@@ -2486,11 +3553,16 @@ const base = import.meta.env.BASE_URL || '';
       3px
       5px;
 
-    border: 1px solid var(--line);
+    border:
+      1px
+      solid
+      var(--line);
 
-    background: var(--surface);
+    background:
+      var(--surface);
 
-    color: var(--muted);
+    color:
+      var(--muted);
 
     font-family:
       ui-monospace,
@@ -2500,41 +3572,86 @@ const base = import.meta.env.BASE_URL || '';
       Consolas,
       monospace;
 
-    font-size: 7px;
+    font-size:
+      7px;
+  }
+
+  /* =========================================================
+     FOCUS
+  ========================================================== */
+
+  .editor-page
+    a:focus-visible,
+  .editor-page
+    button:focus-visible,
+  .editor-page
+    input:focus-visible,
+  .editor-page
+    textarea:focus-visible {
+    outline:
+      2px
+      solid
+      var(--black);
+
+    outline-offset:
+      2px;
+  }
+
+  .editor-page
+    .field-input:focus-visible,
+  .editor-page
+    .content-editor:focus-visible {
+    outline:
+      none;
   }
 
   /* =========================================================
      PAGE ANIMATION
   ========================================================== */
 
-  .editor-page.is-ready
   .editor-section,
-  .editor-page.is-ready
   .preview-panel,
-  .editor-page.is-ready
   .editor-bottom {
+    opacity:
+      1;
+  }
+
+  .editor-page.is-ready
+    .editor-section,
+  .editor-page.is-ready
+    .preview-panel,
+  .editor-page.is-ready
+    .editor-bottom {
     animation:
       editorFadeIn
-      450ms
-      cubic-bezier(0.22, 1, 0.36, 1)
+      420ms
+      cubic-bezier(
+        0.22,
+        1,
+        0.36,
+        1
+      )
       both;
   }
 
   .editor-page.is-ready
-  .preview-panel {
-    animation-delay: 70ms;
+    .preview-panel {
+    animation-delay:
+      60ms;
   }
 
   @keyframes editorFadeIn {
     from {
-      opacity: 0;
+      opacity:
+        0;
 
       transform:
-        translateY(8px);
+        translateY(7px);
     }
 
     to {
-      opacity: 1;
+      opacity:
+        1;
 
       transform:
         translateY(0);
@@ -2542,167 +3659,213 @@ const base = import.meta.env.BASE_URL || '';
   }
 
   /* =========================================================
-     RESPONSIVE
+     TABLET
   ========================================================== */
 
-  @media (max-width: 950px) {
-
-    .editor-layout {
-      grid-template-columns: 1fr;
-    }
-
-    .preview-panel {
-      position: static;
-      order: 2;
-    }
-
-    .song-preview {
-      max-height: none;
-    }
-
-    .preview-content {
-      min-height: 260px;
-    }
-  }
-
-  @media (max-width: 700px) {
+  @media (min-width: 521px) {
 
     .editor-page {
       padding:
-        32px
-        18px
-        60px;
+        42px
+        20px
+        calc(
+          66px +
+          env(safe-area-inset-bottom)
+        );
     }
 
     .editor-header {
-      align-items: flex-start;
+      flex-direction:
+        row;
 
-      flex-direction: column;
+      align-items:
+        flex-end;
 
-      gap: 20px;
+      justify-content:
+        space-between;
+
+      gap:
+        32px;
+
+      margin-bottom:
+        31px;
     }
 
     .editor-top-actions {
-      width: 100%;
+      flex:
+        0
+        0
+        auto;
 
-      justify-content: space-between;
-    }
+      justify-content:
+        flex-end;
 
-    .metadata-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .field-key {
-      max-width: 120px;
-    }
-
-    .editor-toolbar {
-      align-items: flex-start;
-
-      flex-direction: column;
-
-      padding: 8px;
-    }
-
-    .toolbar-hint {
-      display: none;
-    }
-
-    .editor-wrapper {
-      grid-template-columns:
-        35px
-        1fr;
-    }
-
-    .line-numbers {
-      padding-right: 6px;
-    }
-
-    .content-editor {
-      padding:
-        13px
-        10px;
-
-      font-size: 11px;
-    }
-
-    .editor-section-heading {
-      align-items: flex-start;
-    }
-
-    .content-stats {
-      gap: 9px;
-    }
-
-    .form-actions {
-      flex-wrap: wrap;
-    }
-
-    .cancel-button {
-      margin-right: auto;
-    }
-
-    .editor-bottom {
-      align-items: flex-start;
-
-      flex-direction: column;
-    }
-  }
-
-  @media (max-width: 480px) {
-
-    .editor-page {
-      padding-inline: 14px;
-    }
-
-    .editor-heading h1 {
-      font-size: 2.7rem;
-    }
-
-    .editor-heading p {
-      font-size: 11px;
-    }
-
-    .preview-link span {
-      display: none;
+      padding-bottom:
+        4px;
     }
 
     .preview-link {
-      width: 34px;
-      padding: 0;
+      min-width:
+        auto;
+    }
+
+    .metadata-grid {
+      grid-template-columns:
+        minmax(0, 1.45fr)
+        minmax(0, 1fr)
+        100px;
+    }
+
+    .field-key {
+      max-width:
+        none;
+    }
+
+    .editor-toolbar {
+      flex-direction:
+        row;
+
+      align-items:
+        center;
+
+      justify-content:
+        space-between;
+    }
+
+    .toolbar-hint {
+      margin-left:
+        auto;
     }
 
     .editor-wrapper {
-      min-height: 450px;
+      grid-template-columns:
+        42px
+        minmax(0, 1fr);
+
+      min-height:
+        560px;
+    }
+
+    .line-numbers {
+      padding:
+        15px
+        8px
+        15px
+        0;
+
+      font-size:
+        9px;
     }
 
     .content-editor {
-      min-height: 450px;
+      min-height:
+        560px;
+
+      padding:
+        15px;
+
+      font-size:
+        12px;
     }
 
     .form-actions {
-      display: grid;
+      display:
+        flex;
 
-      grid-template-columns:
-        1fr
-        1fr;
+      justify-content:
+        flex-end;
     }
 
     .cancel-button {
-      margin: 0;
+      margin-right:
+        auto;
     }
 
     .save-button {
       grid-column:
-        1 / -1;
+        auto;
 
-      order: -1;
+      order:
+        0;
     }
 
-    .preview-button {
-      width: 100%;
+    .editor-bottom {
+      flex-direction:
+        row;
+
+      align-items:
+        center;
+
+      justify-content:
+        space-between;
     }
   }
+
+  /* =========================================================
+     DESKTOP
+  ========================================================== */
+
+  @media (min-width: 951px) {
+
+    .editor-page {
+      padding:
+        57px
+        28px
+        calc(
+          72px +
+          env(safe-area-inset-bottom)
+        );
+    }
+
+    .editor-header {
+      margin-bottom:
+        30px;
+    }
+
+    .editor-layout {
+      grid-template-columns:
+        minmax(0, 1.35fr)
+        minmax(320px, 0.65fr);
+
+      align-items:
+        start;
+
+      gap:
+        26px;
+    }
+
+    .preview-panel {
+      position:
+        sticky;
+
+      top:
+        18px;
+    }
+
+    .song-preview {
+      max-height:
+        760px;
+
+      overflow:
+        auto;
+    }
+  }
+
+  /* =========================================================
+     LARGE DESKTOP
+  ========================================================== */
+
+  @media (min-width: 1200px) {
+
+    .editor-heading h1 {
+      font-size:
+        4.8rem;
+    }
+  }
+
+  /* =========================================================
+     REDUCED MOTION
+  ========================================================== */
 
   @media (prefers-reduced-motion: reduce) {
 
@@ -2717,6 +3880,9 @@ const base = import.meta.env.BASE_URL || '';
 
       transition-duration:
         0.01ms !important;
+
+      scroll-behavior:
+        auto !important;
     }
   }
 </style>

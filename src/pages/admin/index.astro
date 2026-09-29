@@ -13,9 +13,16 @@ interface Chord {
   content: string;
 }
 
-const base = import.meta.env.BASE_URL || '';
+const base = import.meta.env.BASE_URL || '/';
 
-let chords: (Chord & { slug: string })[] = [];
+const normalizedBase =
+  base === '/'
+    ? ''
+    : base.endsWith('/')
+      ? base.slice(0, -1)
+      : base;
+
+let chords: Array<Chord & { slug: string }> = [];
 let errorMessage: string | null = null;
 
 try {
@@ -24,36 +31,77 @@ try {
     .orderBy('title', 'asc')
     .get();
 
-  chords = snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-    slug: generateSlug(doc.data().title),
-  })) as (Chord & { slug: string })[];
-} catch (error: any) {
-  console.error('Error loading chords:', error);
+  chords = snapshot.docs.map((doc) => {
+    const data = doc.data();
+
+    const title =
+      typeof data.title === 'string' &&
+      data.title.trim()
+        ? data.title.trim()
+        : 'Untitled';
+
+    const artist =
+      typeof data.artist === 'string' &&
+      data.artist.trim()
+        ? data.artist.trim()
+        : 'Unknown artist';
+
+    const key =
+      typeof data.key === 'string' &&
+      data.key.trim()
+        ? data.key.trim()
+        : undefined;
+
+    const content =
+      typeof data.content === 'string'
+        ? data.content
+        : '';
+
+    return {
+      id: doc.id,
+      title,
+      artist,
+      key,
+      content,
+      slug: generateSlug(title),
+    };
+  });
+} catch (error: unknown) {
+  console.error('Error loading admin chord library:', error);
 
   errorMessage =
-    error?.message ||
-    'Gagal memuat data chord. Pastikan service-account.json ada dan Firebase project aktif.';
+    'Gagal memuat library chord. Periksa koneksi Firebase dan konfigurasi Firebase Admin.';
 }
+
+const songCount = chords.length;
+const songCountLabel = String(songCount).padStart(2, '0');
 ---
 
 <Layout title="Admin — SENAR">
-  <main class="admin-page">
+  <main
+    class="admin-page"
+    data-base={normalizedBase}
+  >
 
-    <!-- =========================================================
+    <!-- ======================================================
          HEADER
-    ========================================================== -->
+    ======================================================= -->
 
     <header class="admin-header">
-      <div class="admin-header-left">
+      <div class="admin-header-main">
         <div class="admin-eyebrow">
-          <span class="eyebrow-mark"></span>
-          <span>SENAR / ADMIN</span>
+          <span
+            class="eyebrow-mark"
+            aria-hidden="true"
+          ></span>
+
+          <span>
+            SENAR / ADMIN
+          </span>
         </div>
 
         <div class="admin-heading-row">
-          <div>
+          <div class="admin-title-block">
             <h1>Library</h1>
 
             <p>
@@ -62,21 +110,31 @@ try {
             </p>
           </div>
 
-          <div class="library-stat">
+          <div
+            class="library-stat"
+            aria-label={`${songCount} tracks`}
+          >
             <span>TRACKS</span>
-            <strong>
-              {String(chords.length).padStart(2, '0')}
+
+            <strong aria-hidden="true">
+              {songCountLabel}
             </strong>
           </div>
         </div>
       </div>
 
-      <div class="admin-actions">
+      <nav
+        class="admin-actions"
+        aria-label="Admin actions"
+      >
         <a
-          href={`${base}/`}
+          href={`${normalizedBase}/`}
           class="secondary-action"
         >
-          <svg viewBox="0 0 24 24" aria-hidden="true">
+          <svg
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
             <path d="M19 12H5"></path>
             <path d="m11 18-6-6 6-6"></path>
           </svg>
@@ -85,41 +143,67 @@ try {
         </a>
 
         <a
-          href={`${base}/admin/create`}
+          href={`${normalizedBase}/admin/create`}
           class="primary-action"
         >
-          <svg viewBox="0 0 24 24" aria-hidden="true">
+          <svg
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
             <path d="M12 5v14"></path>
             <path d="M5 12h14"></path>
           </svg>
 
           <span>Tambah Chord</span>
         </a>
-      </div>
+      </nav>
     </header>
 
-    <!-- =========================================================
+    <!-- ======================================================
          TOOLBAR
-    ========================================================== -->
+    ======================================================= -->
 
-    <section class="admin-toolbar">
+    <section
+      class="admin-toolbar"
+      aria-label="Library controls"
+    >
       <div class="toolbar-left">
         <span class="toolbar-title">
           CHORD LIBRARY
         </span>
 
-        <span class="toolbar-divider"></span>
+        <span
+          class="toolbar-divider"
+          aria-hidden="true"
+        ></span>
 
-        <span class="toolbar-count">
-          {chords.length}
-          {chords.length === 1 ? 'track' : 'tracks'}
+        <span
+          class="toolbar-count"
+          data-toolbar-count
+          aria-live="polite"
+        >
+          {songCount}
+          {songCount === 1
+            ? 'track'
+            : 'tracks'}
         </span>
       </div>
 
       <div class="toolbar-right">
-        <div class="admin-search">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <circle cx="11" cy="11" r="6.5"></circle>
+        <label
+          class="admin-search"
+          aria-label="Cari lagu atau artis"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <circle
+              cx="11"
+              cy="11"
+              r="6.5"
+            ></circle>
+
             <path d="m16 16 5 5"></path>
           </svg>
 
@@ -127,12 +211,34 @@ try {
             type="search"
             placeholder="Cari lagu atau artis..."
             autocomplete="off"
+            autocapitalize="none"
             spellcheck="false"
+            enterkeyhint="search"
             data-admin-search
+            aria-controls="adminLibraryList"
           />
 
-          <kbd>/</kbd>
-        </div>
+          <button
+            type="button"
+            class="search-clear"
+            data-clear-search
+            aria-label="Hapus pencarian"
+            title="Hapus pencarian"
+            hidden
+          >
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path d="M6 6l12 12"></path>
+              <path d="M18 6 6 18"></path>
+            </svg>
+          </button>
+
+          <kbd aria-hidden="true">
+            /
+          </kbd>
+        </label>
 
         <button
           type="button"
@@ -144,16 +250,35 @@ try {
       </div>
     </section>
 
-    <!-- =========================================================
+    <!-- ======================================================
+         STATUS
+    ======================================================= -->
+
+    <div
+      class="admin-status"
+      data-admin-status
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+    ></div>
+
+    <!-- ======================================================
          ERROR STATE
-    ========================================================== -->
+    ======================================================= -->
 
     {errorMessage && (
-      <section class="admin-error">
-        <div class="error-icon">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
+      <section
+        class="admin-error"
+        role="alert"
+      >
+        <div
+          class="error-icon"
+          aria-hidden="true"
+        >
+          <svg viewBox="0 0 24 24">
             <path d="M12 9v4"></path>
             <path d="M12 17h.01"></path>
+
             <path
               d="M10.3 3.7 2.7 17a2 2 0 0 0 1.7 3h15.2a2 2 0 0 0 1.7-3L13.7 3.7a2 2 0 0 0-3.4 0Z"
             ></path>
@@ -165,26 +290,27 @@ try {
             SYSTEM ERROR
           </span>
 
-          <h2>Gagal memuat library</h2>
+          <h2>
+            Gagal memuat library
+          </h2>
 
           <p>
             {errorMessage}
           </p>
-
-          <code>
-            service-account.json → Firebase Admin
-          </code>
         </div>
       </section>
     )}
 
-    <!-- =========================================================
+    <!-- ======================================================
          EMPTY STATE
-    ========================================================== -->
+    ======================================================= -->
 
-    {!errorMessage && chords.length === 0 && (
+    {!errorMessage && songCount === 0 && (
       <section class="admin-empty">
-        <div class="empty-index">
+        <div
+          class="empty-index"
+          aria-hidden="true"
+        >
           00
         </div>
 
@@ -193,20 +319,27 @@ try {
             LIBRARY EMPTY
           </span>
 
-          <h2>Belum ada chord</h2>
+          <h2>
+            Belum ada chord
+          </h2>
 
           <p>
-            Tambahkan lagu pertama ke library SENAR
-            untuk mulai membangun koleksi.
+            Tambahkan lagu pertama ke library
+            SENAR untuk mulai membangun koleksi.
           </p>
 
           <a
-            href={`${base}/admin/create`}
+            href={`${normalizedBase}/admin/create`}
             class="empty-action"
           >
-            <span>Tambah chord pertama</span>
+            <span>
+              Tambah chord pertama
+            </span>
 
-            <svg viewBox="0 0 24 24" aria-hidden="true">
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
               <path d="M5 12h13"></path>
               <path d="m13 6 6 6-6 6"></path>
             </svg>
@@ -215,14 +348,17 @@ try {
       </section>
     )}
 
-    <!-- =========================================================
+    <!-- ======================================================
          LIBRARY
-    ========================================================== -->
+    ======================================================= -->
 
-    {!errorMessage && chords.length > 0 && (
+    {!errorMessage && songCount > 0 && (
       <section class="admin-library">
 
-        <div class="library-table-head">
+        <div
+          class="library-table-head"
+          aria-hidden="true"
+        >
           <span>NO.</span>
           <span>SONG</span>
           <span>KEY</span>
@@ -231,46 +367,62 @@ try {
 
         <div
           class="library-list"
+          id="adminLibraryList"
           data-library
         >
           {chords.map((chord, index) => (
             <article
               class="admin-song"
               data-song
-              data-title={chord.title.toLowerCase()}
-              data-artist={chord.artist.toLowerCase()}
+              data-title={chord.title}
+              data-artist={chord.artist}
               style={`--song-index:${index}`}
             >
-              <div class="song-number">
+              <div
+                class="song-number"
+                aria-hidden="true"
+              >
                 {String(index + 1).padStart(2, '0')}
               </div>
 
               <div class="song-information">
-                <h2>{chord.title}</h2>
+                <h2 title={chord.title}>
+                  {chord.title}
+                </h2>
 
-                <p>{chord.artist}</p>
+                <p title={chord.artist}>
+                  {chord.artist}
+                </p>
               </div>
 
               <div class="song-key">
                 {chord.key ? (
                   <>
                     <span>KEY</span>
-                    <strong>{chord.key}</strong>
+
+                    <strong>
+                      {chord.key}
+                    </strong>
                   </>
                 ) : (
-                  <span class="no-key">—</span>
+                  <span class="no-key">
+                    —
+                  </span>
                 )}
               </div>
 
               <div class="song-actions">
                 <a
-                  href={`${base}/admin/${chord.slug}`}
+                  href={`${normalizedBase}/admin/${chord.slug}`}
                   class="edit-button"
                   aria-label={`Edit ${chord.title}`}
                 >
                   <span>Edit</span>
 
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <svg
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
                     <path d="M12 20h9"></path>
 
                     <path
@@ -282,13 +434,19 @@ try {
                 <button
                   type="button"
                   class="delete-button"
+                  data-delete-button
                   data-id={chord.id}
                   data-title={chord.title}
                   aria-label={`Hapus ${chord.title}`}
                 >
-                  <span>Hapus</span>
+                  <span>
+                    Hapus
+                  </span>
 
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <svg
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
                     <path d="M4 7h16"></path>
                     <path d="M10 11v6"></path>
                     <path d="M14 11v6"></path>
@@ -312,10 +470,16 @@ try {
           class="library-search-empty"
           data-search-empty
           hidden
+          role="status"
+          aria-live="polite"
         >
-          <span>NO MATCH</span>
+          <span>
+            NO MATCH
+          </span>
 
-          <h3>Tidak ada hasil</h3>
+          <h3>
+            Tidak ada hasil
+          </h3>
 
           <p>
             Tidak ditemukan lagu atau artis
@@ -332,18 +496,23 @@ try {
       </section>
     )}
 
-    <!-- =========================================================
+    <!-- ======================================================
          FOOTER
-    ========================================================== -->
+    ======================================================= -->
 
     <footer class="admin-footer">
-      <div class="footer-line"></div>
+      <div
+        class="footer-line"
+        aria-hidden="true"
+      ></div>
 
       <div class="footer-content">
-        <span>SENAR ADMIN</span>
+        <span>
+          SENAR ADMIN
+        </span>
 
         <span>
-          {chords.length} RECORDS
+          {songCount} RECORDS
         </span>
 
         <span>
@@ -355,255 +524,468 @@ try {
 </Layout>
 
 <script>
-  document.addEventListener('astro:page-load', () => {
-    const basePath =
-      window.location.pathname
-        .split('/')
-        .slice(0, 2)
-        .join('/') || '';
+  document.addEventListener(
+    'astro:page-load',
+    () => {
+      const page =
+        document.querySelector<HTMLElement>(
+          '.admin-page'
+        );
 
-    const logoutBtn =
-      document.getElementById(
-        'logoutBtn'
-      ) as HTMLButtonElement | null;
+      if (!page) {
+        return;
+      }
 
-    const searchInput =
-      document.querySelector(
-        '[data-admin-search]'
-      ) as HTMLInputElement | null;
+      const basePath =
+        page.dataset.base || '';
 
-    const resetSearch =
-      document.querySelector(
-        '[data-reset-search]'
-      ) as HTMLButtonElement | null;
+      const logoutBtn =
+        document.querySelector<HTMLButtonElement>(
+          '#logoutBtn'
+        );
 
-    const searchEmpty =
-      document.querySelector(
-        '[data-search-empty]'
-      ) as HTMLElement | null;
+      const searchInput =
+        document.querySelector<HTMLInputElement>(
+          '[data-admin-search]'
+        );
 
-    const songs = Array.from(
-      document.querySelectorAll('[data-song]')
-    ) as HTMLElement[];
+      const clearSearch =
+        document.querySelector<HTMLButtonElement>(
+          '[data-clear-search]'
+        );
 
-    /*
-     * =========================================================
-     * LOGOUT
-     * =========================================================
-     */
+      const resetSearch =
+        document.querySelector<HTMLButtonElement>(
+          '[data-reset-search]'
+        );
 
-    logoutBtn?.addEventListener(
-      'click',
-      async () => {
-        if (!logoutBtn) return;
+      const searchEmpty =
+        document.querySelector<HTMLElement>(
+          '[data-search-empty]'
+        );
 
-        logoutBtn.disabled = true;
-        logoutBtn.textContent = 'Logging out...';
+      const toolbarCount =
+        document.querySelector<HTMLElement>(
+          '[data-toolbar-count]'
+        );
 
-        try {
-          const response =
-            await fetch(
-              `${basePath}/api/admin/logout`,
-              {
-                method: 'POST'
-              }
+      const status =
+        document.querySelector<HTMLElement>(
+          '[data-admin-status]'
+        );
+
+      const songs =
+        Array.from(
+          document.querySelectorAll<HTMLElement>(
+            '[data-song]'
+          )
+        );
+
+      const deleteButtons =
+        Array.from(
+          document.querySelectorAll<HTMLButtonElement>(
+            '[data-delete-button]'
+          )
+        );
+
+      /*
+       * ======================================================
+       * HELPERS
+       * ======================================================
+       */
+
+      const normalize = (
+        value: string
+      ): string => {
+        return value
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(
+            /[\u0300-\u036f]/g,
+            ''
+          )
+          .trim();
+      };
+
+      const showStatus = (
+        message: string,
+        type:
+          | 'success'
+          | 'error' = 'success'
+      ) => {
+        if (!status) {
+          return;
+        }
+
+        status.textContent = message;
+
+        status.dataset.state = type;
+
+        window.setTimeout(() => {
+          if (
+            status.textContent ===
+            message
+          ) {
+            status.textContent = '';
+
+            status.removeAttribute(
+              'data-state'
+            );
+          }
+        }, 3200);
+      };
+
+      /*
+       * ======================================================
+       * LOGOUT
+       * ======================================================
+       */
+
+      logoutBtn?.addEventListener(
+        'click',
+        async () => {
+          if (!logoutBtn) {
+            return;
+          }
+
+          const originalText =
+            logoutBtn.textContent ||
+            'Logout';
+
+          logoutBtn.disabled = true;
+
+          logoutBtn.textContent =
+            'Logging out…';
+
+          try {
+            const response =
+              await fetch(
+                `${basePath}/api/admin/logout`,
+                {
+                  method: 'POST',
+                  credentials: 'same-origin',
+                  headers: {
+                    Accept:
+                      'application/json',
+                  },
+                }
+              );
+
+            if (!response.ok) {
+              throw new Error(
+                `Logout failed: ${response.status}`
+              );
+            }
+
+            window.location.assign(
+              `${basePath}/`
+            );
+          } catch (error) {
+            console.error(
+              'Logout error:',
+              error
             );
 
-          if (response.ok) {
-            window.location.href =
-              `${basePath}/`;
+            logoutBtn.disabled = false;
+
+            logoutBtn.textContent =
+              originalText;
+
+            showStatus(
+              'Logout gagal. Silakan coba lagi.',
+              'error'
+            );
+          }
+        }
+      );
+
+      /*
+       * ======================================================
+       * SEARCH
+       * ======================================================
+       */
+
+      const songEntries =
+        songs.map((element) => ({
+          element,
+          title: normalize(
+            element.dataset.title || ''
+          ),
+          artist: normalize(
+            element.dataset.artist || ''
+          ),
+        }));
+
+      const updateSearch = () => {
+        if (!searchInput) {
+          return;
+        }
+
+        const query =
+          normalize(
+            searchInput.value
+          );
+
+        let visibleCount = 0;
+
+        for (
+          const song
+          of songEntries
+        ) {
+          const matches =
+            query === '' ||
+            song.title.includes(query) ||
+            song.artist.includes(query);
+
+          song.element.hidden =
+            !matches;
+
+          if (matches) {
+            visibleCount += 1;
+          }
+        }
+
+        if (clearSearch) {
+          clearSearch.hidden =
+            query.length === 0;
+        }
+
+        if (toolbarCount) {
+          toolbarCount.textContent =
+            query.length === 0
+              ? `${songEntries.length} ${
+                  songEntries.length === 1
+                    ? 'track'
+                    : 'tracks'
+                }`
+              : `${visibleCount} ${
+                  visibleCount === 1
+                    ? 'result'
+                    : 'results'
+                }`;
+        }
+
+        if (searchEmpty) {
+          searchEmpty.hidden =
+            visibleCount !== 0 ||
+            query.length === 0;
+        }
+
+        page.classList.toggle(
+          'is-searching',
+          query.length > 0
+        );
+      };
+
+      searchInput?.addEventListener(
+        'input',
+        updateSearch
+      );
+
+      clearSearch?.addEventListener(
+        'click',
+        () => {
+          if (!searchInput) {
+            return;
+          }
+
+          searchInput.value = '';
+
+          updateSearch();
+
+          searchInput.focus();
+        }
+      );
+
+      resetSearch?.addEventListener(
+        'click',
+        () => {
+          if (!searchInput) {
+            return;
+          }
+
+          searchInput.value = '';
+
+          updateSearch();
+
+          searchInput.focus();
+        }
+      );
+
+      /*
+       * ======================================================
+       * KEYBOARD SHORTCUTS
+       * ======================================================
+       */
+
+      window.addEventListener(
+        'keydown',
+        (event) => {
+          const target =
+            event.target;
+
+          const isTyping =
+            target instanceof
+              HTMLInputElement ||
+            target instanceof
+              HTMLTextAreaElement ||
+            target instanceof
+              HTMLSelectElement ||
+            (
+              target instanceof
+                HTMLElement &&
+              target.isContentEditable
+            );
+
+          /*
+           * Escape while searching:
+           * clear first, then blur.
+           */
+          if (
+            event.key === 'Escape' &&
+            target === searchInput &&
+            searchInput
+          ) {
+            event.preventDefault();
+
+            if (
+              searchInput.value.length > 0
+            ) {
+              searchInput.value = '';
+
+              updateSearch();
+
+              return;
+            }
+
+            searchInput.blur();
 
             return;
           }
 
-          logoutBtn.disabled = false;
-          logoutBtn.textContent = 'Logout';
-
-          alert(
-            'Logout gagal. Silakan coba lagi.'
-          );
-        } catch (error) {
-          console.error(
-            'Logout error:',
-            error
-          );
-
-          logoutBtn.disabled = false;
-          logoutBtn.textContent = 'Logout';
-
-          alert(
-            'Terjadi kesalahan saat logout.'
-          );
-        }
-      }
-    );
-
-    /*
-     * =========================================================
-     * SEARCH
-     * =========================================================
-     */
-
-    const normalize = (
-      value: string
-    ) => {
-      return value
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(
-          /[\u0300-\u036f]/g,
-          ''
-        )
-        .trim();
-    };
-
-    const updateSearch = () => {
-      if (!searchInput) return;
-
-      const query =
-        normalize(
-          searchInput.value
-        );
-
-      let visibleCount = 0;
-
-      songs.forEach((song) => {
-        const title =
-          normalize(
-            song.dataset.title || ''
-          );
-
-        const artist =
-          normalize(
-            song.dataset.artist || ''
-          );
-
-        const match =
-          query === '' ||
-          title.includes(query) ||
-          artist.includes(query);
-
-        song.hidden = !match;
-
-        if (match) {
-          visibleCount += 1;
-        }
-      });
-
-      if (searchEmpty) {
-        searchEmpty.hidden =
-          visibleCount !== 0;
-      }
-    };
-
-    searchInput?.addEventListener(
-      'input',
-      updateSearch
-    );
-
-    resetSearch?.addEventListener(
-      'click',
-      () => {
-        if (!searchInput) return;
-
-        searchInput.value = '';
-
-        updateSearch();
-
-        searchInput.focus();
-      }
-    );
-
-    /*
-     * /
-     * Focus search
-     */
-
-    window.addEventListener(
-      'keydown',
-      (event) => {
-        const target =
-          event.target;
-
-        if (
-          target instanceof HTMLInputElement ||
-          target instanceof HTMLTextAreaElement
-        ) {
-          if (
-            event.key === 'Escape'
-          ) {
-            searchInput?.blur();
+          if (isTyping) {
+            return;
           }
 
-          return;
+          /*
+           * /
+           * Focus search.
+           */
+          if (
+            event.key === '/' &&
+            searchInput
+          ) {
+            event.preventDefault();
+
+            searchInput.focus();
+
+            return;
+          }
+
+          /*
+           * CMD/CTRL + K
+           * Focus search.
+           */
+          if (
+            event.key.toLowerCase() === 'k' &&
+            (event.metaKey ||
+              event.ctrlKey) &&
+            searchInput
+          ) {
+            event.preventDefault();
+
+            searchInput.focus();
+          }
         }
+      );
 
-        if (
-          event.key === '/'
-        ) {
-          event.preventDefault();
+      /*
+       * ======================================================
+       * DELETE
+       * ======================================================
+       */
 
-          searchInput?.focus();
-        }
-      }
-    );
+      deleteButtons.forEach(
+        (button) => {
+          button.addEventListener(
+            'click',
+            async () => {
+              const id =
+                button.dataset.id;
 
-    /*
-     * =========================================================
-     * DELETE
-     * =========================================================
-     */
+              const title =
+                button.dataset.title ||
+                'this chord';
 
-    document
-      .querySelectorAll(
-        '.delete-button'
-      )
-      .forEach((element) => {
-        const button =
-          element as HTMLButtonElement;
-
-        button.addEventListener(
-          'click',
-          async () => {
-            const id =
-              button.dataset.id;
-
-            const title =
-              button.dataset.title;
-
-            if (!id || !title) {
-              return;
-            }
-
-            const confirmed =
-              window.confirm(
-                `Hapus chord "${title}"?\n\nTindakan ini tidak dapat dibatalkan.`
-              );
-
-            if (!confirmed) {
-              return;
-            }
-
-            const originalHTML =
-              button.innerHTML;
-
-            button.disabled = true;
-
-            button.innerHTML =
-              '<span>Menghapus...</span>';
-
-            try {
-              const response =
-                await fetch(
-                  `${basePath}/api/admin/chords/${id}`,
-                  {
-                    method: 'DELETE'
-                  }
+              if (!id) {
+                showStatus(
+                  'ID chord tidak ditemukan.',
+                  'error'
                 );
 
-              if (response.ok) {
+                return;
+              }
+
+              const confirmed =
+                window.confirm(
+                  `Hapus chord "${title}"?\n\nTindakan ini tidak dapat dibatalkan.`
+                );
+
+              if (!confirmed) {
+                return;
+              }
+
+              const originalHTML =
+                button.innerHTML;
+
+              button.disabled = true;
+
+              button.innerHTML =
+                '<span>Menghapus…</span>';
+
+              try {
+                const response =
+                  await fetch(
+                    `${basePath}/api/admin/chords/${encodeURIComponent(id)}`,
+                    {
+                      method: 'DELETE',
+                      credentials:
+                        'same-origin',
+                      headers: {
+                        Accept:
+                          'application/json',
+                      },
+                    }
+                  );
+
+                if (!response.ok) {
+                  let message =
+                    'Gagal menghapus chord.';
+
+                  try {
+                    const data =
+                      await response.json();
+
+                    if (
+                      data &&
+                      typeof data.message ===
+                        'string' &&
+                      data.message.trim()
+                    ) {
+                      message =
+                        data.message;
+                    }
+                  } catch {
+                    // Ignore non-JSON responses.
+                  }
+
+                  throw new Error(
+                    message
+                  );
+                }
+
                 const row =
-                  button.closest(
+                  button.closest<HTMLElement>(
                     '.admin-song'
                   );
 
@@ -613,57 +995,68 @@ try {
                   );
                 }
 
-                setTimeout(() => {
-                  window.location.reload();
-                }, 260);
+                showStatus(
+                  `"${title}" berhasil dihapus.`
+                );
 
-                return;
+                window.setTimeout(
+                  () => {
+                    window.location.reload();
+                  },
+                  260
+                );
+              } catch (error) {
+                console.error(
+                  'Delete error:',
+                  error
+                );
+
+                button.disabled =
+                  false;
+
+                button.innerHTML =
+                  originalHTML;
+
+                showStatus(
+                  error instanceof Error
+                    ? error.message
+                    : 'Terjadi kesalahan saat menghapus chord.',
+                  'error'
+                );
               }
-
-              button.disabled = false;
-
-              button.innerHTML =
-                originalHTML;
-
-              alert(
-                'Gagal menghapus chord.'
-              );
-            } catch (error) {
-              console.error(
-                'Delete error:',
-                error
-              );
-
-              button.disabled = false;
-
-              button.innerHTML =
-                originalHTML;
-
-              alert(
-                'Terjadi kesalahan saat menghapus chord.'
-              );
             }
-          }
-        );
-      });
+          );
+        }
+      );
 
-    /*
-     * =========================================================
-     * PAGE ENTER
-     * =========================================================
-     */
+      /*
+       * ======================================================
+       * PAGE ENTER
+       * ======================================================
+       */
 
-    requestAnimationFrame(() => {
-      document
-        .querySelector('.admin-page')
-        ?.classList.add(
-          'is-ready'
-        );
-    });
-  });
+      requestAnimationFrame(
+        () => {
+          page.classList.add(
+            'is-ready'
+          );
+        }
+      );
+
+      /*
+       * Ensure initial search state
+       * is always correct.
+       */
+      updateSearch();
+    }
+  );
 </script>
 
 <style is:global>
+  /* =========================================================
+     ROOT
+  ========================================================== */
+
   .admin-page {
     --black: #090909;
     --ink: #171717;
@@ -678,9 +1071,18 @@ try {
 
     margin: 0 auto;
 
-    padding: 52px 28px 70px;
+    padding:
+      30px
+      14px
+      calc(
+        58px +
+        env(safe-area-inset-bottom)
+      );
 
     color: var(--ink);
+
+    -webkit-tap-highlight-color:
+      transparent;
   }
 
   /* =========================================================
@@ -689,12 +1091,17 @@ try {
 
   .admin-header {
     display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
+    flex-direction: column;
 
-    gap: 35px;
+    align-items: stretch;
 
-    margin-bottom: 42px;
+    gap: 24px;
+
+    margin-bottom: 30px;
+  }
+
+  .admin-header-main {
+    min-width: 0;
   }
 
   .admin-eyebrow {
@@ -703,7 +1110,7 @@ try {
 
     gap: 9px;
 
-    margin-bottom: 16px;
+    margin-bottom: 15px;
 
     color: var(--muted);
 
@@ -718,21 +1125,24 @@ try {
     font-size: 8px;
     font-weight: 800;
 
-    letter-spacing: 0.18em;
+    letter-spacing: 0.17em;
   }
 
   .eyebrow-mark {
-    width: 21px;
+    flex: 0 0 auto;
+
+    width: 19px;
     height: 1px;
 
     background: var(--black);
   }
 
   .admin-heading-row {
-    display: flex;
-    align-items: flex-end;
+    display: block;
+  }
 
-    gap: 28px;
+  .admin-title-block {
+    min-width: 0;
   }
 
   .admin-heading-row h1 {
@@ -741,34 +1151,38 @@ try {
     color: var(--black);
 
     font-size:
-      clamp(2.3rem, 6vw, 4.3rem);
+      clamp(
+        2.7rem,
+        14vw,
+        4.6rem
+      );
 
-    line-height: 0.9;
+    line-height: 0.86;
 
     font-weight: 900;
 
-    letter-spacing: -0.06em;
+    letter-spacing: -0.065em;
   }
 
   .admin-heading-row p {
-    max-width: 420px;
+    max-width: 360px;
 
-    margin: 17px 0 0;
+    margin: 15px 0 0;
 
     color: var(--muted);
 
-    font-size: 13px;
+    font-size: 12px;
 
-    line-height: 1.65;
+    line-height: 1.7;
   }
 
   .library-stat {
     display: flex;
     flex-direction: column;
 
-    align-items: flex-end;
+    align-items: flex-start;
 
-    padding-bottom: 2px;
+    margin-top: 19px;
   }
 
   .library-stat span {
@@ -801,9 +1215,9 @@ try {
       Consolas,
       monospace;
 
-    font-size: 29px;
+    font-size: 28px;
 
-    line-height: 1;
+    line-height: 0.9;
 
     font-weight: 800;
 
@@ -815,10 +1229,13 @@ try {
   ========================================================== */
 
   .admin-actions {
-    display: flex;
-    align-items: center;
+    display: grid;
 
-    gap: 7px;
+    grid-template-columns:
+      1fr
+      1fr;
+
+    gap: 6px;
   }
 
   .primary-action,
@@ -830,14 +1247,20 @@ try {
 
     gap: 7px;
 
-    height: 37px;
+    min-height: 39px;
 
-    padding: 0 13px;
+    padding:
+      0
+      11px;
 
     text-decoration: none;
 
-    font-size: 10px;
+    font-size: 9px;
+
     font-weight: 750;
+
+    touch-action:
+      manipulation;
 
     transition:
       background 160ms ease,
@@ -847,7 +1270,10 @@ try {
   }
 
   .primary-action {
-    border: 1px solid var(--black);
+    border:
+      1px
+      solid
+      var(--black);
 
     background: var(--black);
 
@@ -856,16 +1282,15 @@ try {
 
   .primary-action:hover {
     background: white;
+
     color: var(--black);
   }
 
-  .primary-action:active,
-  .secondary-action:active {
-    transform: translateY(1px);
-  }
-
   .secondary-action {
-    border: 1px solid var(--line);
+    border:
+      1px
+      solid
+      var(--line);
 
     background: white;
 
@@ -876,6 +1301,12 @@ try {
     border-color: #c9c9c9;
 
     color: var(--black);
+  }
+
+  .primary-action:active,
+  .secondary-action:active {
+    transform:
+      translateY(1px);
   }
 
   .primary-action svg,
@@ -899,17 +1330,27 @@ try {
 
   .admin-toolbar {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    flex-direction: column;
 
-    gap: 20px;
+    align-items: stretch;
 
-    padding: 10px 0;
+    gap: 10px;
 
-    border-top: 1px solid var(--line);
-    border-bottom: 1px solid var(--line);
+    padding:
+      10px
+      0;
 
-    margin-bottom: 18px;
+    border-top:
+      1px
+      solid
+      var(--line);
+
+    border-bottom:
+      1px
+      solid
+      var(--line);
+
+    margin-bottom: 17px;
   }
 
   .toolbar-left {
@@ -930,7 +1371,7 @@ try {
       Consolas,
       monospace;
 
-    font-size: 8px;
+    font-size: 7px;
 
     font-weight: 800;
 
@@ -940,6 +1381,8 @@ try {
   .toolbar-divider {
     width: 3px;
     height: 3px;
+
+    flex: 0 0 auto;
 
     border-radius: 50%;
 
@@ -966,17 +1409,22 @@ try {
     display: flex;
     align-items: center;
 
-    gap: 12px;
+    gap: 7px;
   }
 
   .admin-search {
     display: flex;
     align-items: center;
 
-    width: 270px;
-    height: 34px;
+    flex: 1;
 
-    border: 1px solid var(--line);
+    min-width: 0;
+    height: 38px;
+
+    border:
+      1px
+      solid
+      var(--line);
 
     background: white;
 
@@ -986,15 +1434,19 @@ try {
   }
 
   .admin-search:focus-within {
-    border-color: var(--black);
+    border-color:
+      var(--black);
 
     box-shadow:
-      0 0 0 1px var(--black);
+      0 0 0 1px
+      var(--black);
   }
 
   .admin-search > svg {
-    width: 13px;
-    height: 13px;
+    width: 14px;
+    height: 14px;
+
+    flex: 0 0 auto;
 
     margin-left: 10px;
 
@@ -1012,9 +1464,13 @@ try {
 
     flex: 1;
 
+    width: 100%;
+
     height: 100%;
 
-    padding: 0 8px;
+    padding:
+      0
+      9px;
 
     border: 0;
     outline: 0;
@@ -1023,39 +1479,30 @@ try {
 
     color: var(--black);
 
-    font-size: 10px;
+    font-size: 14px;
+
+    -webkit-appearance: none;
+    appearance: none;
   }
 
   .admin-search input::placeholder {
     color: #a3a3a3;
   }
 
-  .admin-search kbd {
-    margin-right: 7px;
-
-    padding: 3px 5px;
-
-    border: 1px solid #e6e6e6;
-
-    background: #fafafa;
-
-    color: #a3a3a3;
-
-    font-family:
-      ui-monospace,
-      SFMono-Regular,
-      Menlo,
-      Monaco,
-      Consolas,
-      monospace;
-
-    font-size: 8px;
+  .admin-search input::-webkit-search-cancel-button {
+    display: none;
   }
 
-  .logout-button {
+  .search-clear {
+    display: grid;
+    place-items: center;
+
+    width: 34px;
     height: 34px;
 
-    padding: 0 7px;
+    flex: 0 0 auto;
+
+    margin-right: 1px;
 
     border: 0;
 
@@ -1063,13 +1510,54 @@ try {
 
     color: var(--muted);
 
-    font-size: 10px;
+    cursor: pointer;
 
-    font-weight: 650;
+    touch-action:
+      manipulation;
+  }
+
+  .search-clear:hover {
+    color: var(--black);
+  }
+
+  .search-clear svg {
+    width: 14px;
+    height: 14px;
+
+    fill: none;
+
+    stroke: currentColor;
+
+    stroke-width: 1.8;
+
+    stroke-linecap: round;
+  }
+
+  .admin-search kbd {
+    display: none;
+  }
+
+  .logout-button {
+    min-width: 52px;
+    height: 38px;
+
+    padding:
+      0
+      4px;
+
+    border: 0;
+
+    background: transparent;
+
+    color: var(--muted);
+
+    font-size: 9px;
+
+    font-weight: 700;
 
     cursor: pointer;
 
-    transition: color 150ms ease;
+    white-space: nowrap;
   }
 
   .logout-button:hover {
@@ -1083,25 +1571,90 @@ try {
   }
 
   /* =========================================================
-     TABLE
+     STATUS
+  ========================================================== */
+
+  .admin-status {
+    min-height: 0;
+
+    margin:
+      0
+      0
+      0;
+
+    color: transparent;
+
+    font-size: 0;
+
+    transition:
+      margin 160ms ease,
+      opacity 160ms ease;
+  }
+
+  .admin-status[data-state] {
+    min-height: 32px;
+
+    margin-bottom: 12px;
+
+    padding:
+      8px
+      10px;
+
+    border:
+      1px
+      solid
+      var(--line);
+
+    background: var(--lighter);
+
+    color: var(--muted);
+
+    font-size: 9px;
+
+    line-height: 1.4;
+  }
+
+  .admin-status[data-state='success'] {
+    border-color:
+      #dcdcdc;
+
+    color: var(--ink);
+  }
+
+  .admin-status[data-state='error'] {
+    border-color:
+      #bdbdbd;
+
+    background: #f8f8f8;
+
+    color: var(--black);
+  }
+
+  /* =========================================================
+     LIBRARY TABLE
   ========================================================== */
 
   .library-table-head {
     display: grid;
 
     grid-template-columns:
-      58px
+      38px
       minmax(0, 1fr)
-      100px
-      190px;
+      56px
+      72px;
 
     align-items: center;
 
-    height: 33px;
+    height: 30px;
 
-    padding: 0 15px;
+    padding:
+      0
+      8px;
 
-    border-bottom: 1px solid var(--black);
+    border-bottom:
+      1px
+      solid
+      var(--black);
 
     color: var(--soft);
 
@@ -1113,11 +1666,11 @@ try {
       Consolas,
       monospace;
 
-    font-size: 7px;
+    font-size: 6px;
 
     font-weight: 800;
 
-    letter-spacing: 0.14em;
+    letter-spacing: 0.12em;
   }
 
   .library-list {
@@ -1131,32 +1684,43 @@ try {
     display: grid;
 
     grid-template-columns:
-      58px
+      38px
       minmax(0, 1fr)
-      100px
-      190px;
+      56px
+      72px;
 
     align-items: center;
 
-    min-height: 76px;
+    min-height: 73px;
 
-    padding: 0 15px;
+    padding:
+      0
+      8px;
 
-    border-bottom: 1px solid var(--line);
+    border-bottom:
+      1px
+      solid
+      var(--line);
 
     background: white;
 
     transition:
       background 160ms ease,
       transform 180ms
-        cubic-bezier(0.22, 1, 0.36, 1),
+        cubic-bezier(
+          0.22,
+          1,
+          0.36,
+          1
+        ),
       opacity 220ms ease;
   }
 
   .admin-song:hover {
     background: #fcfcfc;
 
-    transform: translateX(3px);
+    transform:
+      translateX(2px);
   }
 
   .admin-song[hidden] {
@@ -1166,7 +1730,8 @@ try {
   .admin-song.is-deleting {
     opacity: 0;
 
-    transform: translateX(-10px);
+    transform:
+      translateX(-10px);
   }
 
   .song-number {
@@ -1180,57 +1745,70 @@ try {
       Consolas,
       monospace;
 
-    font-size: 9px;
+    font-size: 8px;
 
     font-weight: 800;
   }
 
   .song-information {
     min-width: 0;
+
+    padding-right: 5px;
   }
 
   .song-information h2 {
-    margin: 0;
-
     overflow: hidden;
+
+    margin: 0;
 
     color: var(--black);
 
-    font-size: 13px;
+    font-size: 12px;
 
     line-height: 1.25;
 
     font-weight: 800;
 
-    letter-spacing: -0.018em;
+    letter-spacing:
+      -0.018em;
 
     text-overflow: ellipsis;
+
     white-space: nowrap;
   }
 
   .song-information p {
-    margin: 5px 0 0;
-
     overflow: hidden;
+
+    margin:
+      5px
+      0
+      0;
 
     color: var(--muted);
 
-    font-size: 10px;
+    font-size: 9px;
 
     line-height: 1.2;
 
     text-overflow: ellipsis;
+
     white-space: nowrap;
   }
 
   .song-key {
     display: flex;
+
     align-items: center;
 
-    gap: 7px;
+    gap: 4px;
+
+    min-width: 0;
   }
 
   .song-key > span:first-child {
+    display: none;
+
     color: var(--soft);
 
     font-family:
@@ -1241,7 +1819,7 @@ try {
       Consolas,
       monospace;
 
-    font-size: 7px;
+    font-size: 6px;
 
     font-weight: 800;
 
@@ -1259,7 +1837,7 @@ try {
       Consolas,
       monospace;
 
-    font-size: 10px;
+    font-size: 9px;
 
     font-weight: 800;
   }
@@ -1275,7 +1853,7 @@ try {
 
     justify-content: flex-end;
 
-    gap: 5px;
+    gap: 3px;
   }
 
   .edit-button,
@@ -1285,15 +1863,15 @@ try {
     align-items: center;
     justify-content: center;
 
-    gap: 6px;
-
-    min-width: 66px;
-
+    width: 30px;
     height: 30px;
 
-    padding: 0 9px;
+    padding: 0;
 
-    border: 1px solid var(--line);
+    border:
+      1px
+      solid
+      var(--line);
 
     background: white;
 
@@ -1307,6 +1885,9 @@ try {
 
     cursor: pointer;
 
+    touch-action:
+      manipulation;
+
     transition:
       background 150ms ease,
       color 150ms ease,
@@ -1314,19 +1895,28 @@ try {
   }
 
   .edit-button:hover {
-    border-color: var(--black);
+    border-color:
+      var(--black);
 
-    background: var(--black);
+    background:
+      var(--black);
 
     color: white;
   }
 
   .delete-button:hover {
-    border-color: #bcbcbc;
+    border-color:
+      #bcbcbc;
 
-    background: #f4f4f4;
+    background:
+      #f4f4f4;
 
     color: var(--black);
+  }
+
+  .edit-button span,
+  .delete-button span {
+    display: none;
   }
 
   .delete-button:disabled {
@@ -1359,14 +1949,21 @@ try {
     width: 0;
     height: 2px;
 
-    background: var(--black);
+    background:
+      var(--black);
 
     transition:
       width 260ms
-        cubic-bezier(0.22, 1, 0.36, 1);
+        cubic-bezier(
+          0.22,
+          1,
+          0.36,
+          1
+        );
   }
 
-  .admin-song:hover .song-hover-line {
+  .admin-song:hover
+    .song-hover-line {
     width: 100%;
   }
 
@@ -1377,41 +1974,56 @@ try {
   .admin-error {
     display: flex;
 
-    gap: 18px;
+    align-items: flex-start;
 
-    padding: 23px;
+    gap: 14px;
 
-    border: 1px solid #d6d6d6;
+    padding:
+      18px;
 
-    background: #fafafa;
+    border:
+      1px
+      solid
+      #d6d6d6;
+
+    background:
+      #fafafa;
   }
 
   .error-icon {
-    width: 40px;
-    height: 40px;
-
-    flex: 0 0 auto;
-
     display: grid;
     place-items: center;
 
-    border: 1px solid #dcdcdc;
+    flex: 0 0 auto;
+
+    width: 38px;
+    height: 38px;
+
+    border:
+      1px
+      solid
+      #dcdcdc;
 
     background: white;
   }
 
   .error-icon svg {
-    width: 17px;
-    height: 17px;
+    width: 16px;
+    height: 16px;
 
     fill: none;
 
-    stroke: var(--black);
+    stroke:
+      var(--black);
 
     stroke-width: 1.5;
 
     stroke-linecap: round;
     stroke-linejoin: round;
+  }
+
+  .error-content {
+    min-width: 0;
   }
 
   .error-label,
@@ -1441,48 +2053,32 @@ try {
   .empty-content h2 {
     margin: 0;
 
-    color: var(--black);
+    color:
+      var(--black);
 
-    font-size: 17px;
+    font-size: 16px;
 
     font-weight: 800;
 
-    letter-spacing: -0.02em;
+    letter-spacing:
+      -0.02em;
   }
 
   .error-content p,
   .empty-content p {
-    max-width: 620px;
+    max-width: 600px;
 
-    margin: 7px 0 12px;
+    margin:
+      7px
+      0
+      0;
 
-    color: var(--muted);
+    color:
+      var(--muted);
 
-    font-size: 11px;
+    font-size: 10px;
 
     line-height: 1.7;
-  }
-
-  .error-content code {
-    display: inline-block;
-
-    padding: 5px 7px;
-
-    border: 1px solid var(--line);
-
-    background: white;
-
-    color: #525252;
-
-    font-family:
-      ui-monospace,
-      SFMono-Regular,
-      Menlo,
-      Monaco,
-      Consolas,
-      monospace;
-
-    font-size: 8px;
   }
 
   /* =========================================================
@@ -1493,15 +2089,24 @@ try {
     display: grid;
 
     grid-template-columns:
-      76px
+      42px
       minmax(0, 1fr);
 
-    gap: 25px;
+    gap: 15px;
 
-    padding: 55px 20px;
+    padding:
+      43px
+      10px;
 
-    border-top: 1px solid var(--line);
-    border-bottom: 1px solid var(--line);
+    border-top:
+      1px
+      solid
+      var(--line);
+
+    border-bottom:
+      1px
+      solid
+      var(--line);
   }
 
   .empty-index {
@@ -1515,11 +2120,12 @@ try {
       Consolas,
       monospace;
 
-    font-size: 35px;
+    font-size: 25px;
 
     font-weight: 800;
 
-    letter-spacing: -0.08em;
+    letter-spacing:
+      -0.08em;
   }
 
   .empty-action {
@@ -1527,29 +2133,43 @@ try {
 
     align-items: center;
 
-    gap: 10px;
+    gap: 9px;
 
-    height: 34px;
+    min-height: 36px;
 
-    padding: 0 11px;
+    margin-top: 16px;
 
-    border: 1px solid var(--black);
+    padding:
+      0
+      11px;
 
-    background: var(--black);
+    border:
+      1px
+      solid
+      var(--black);
+
+    background:
+      var(--black);
 
     color: white;
 
-    text-decoration: none;
+    text-decoration:
+      none;
 
     font-size: 9px;
 
     font-weight: 700;
+
+    touch-action:
+      manipulation;
   }
 
   .empty-action:hover {
-    background: white;
+    background:
+      white;
 
-    color: var(--black);
+    color:
+      var(--black);
   }
 
   .empty-action svg {
@@ -1558,7 +2178,8 @@ try {
 
     fill: none;
 
-    stroke: currentColor;
+    stroke:
+      currentColor;
 
     stroke-width: 1.6;
 
@@ -1571,21 +2192,30 @@ try {
   ========================================================== */
 
   .library-search-empty {
-    padding: 70px 20px;
+    padding:
+      64px
+      15px;
 
-    border-bottom: 1px solid var(--line);
+    border-bottom:
+      1px
+      solid
+      var(--line);
 
-    background: #fcfcfc;
+    background:
+      #fcfcfc;
 
-    text-align: center;
+    text-align:
+      center;
   }
 
   .library-search-empty[hidden] {
     display: none;
   }
 
-  .library-search-empty > span {
-    color: var(--soft);
+  .library-search-empty
+    > span {
+    color:
+      var(--soft);
 
     font-family:
       ui-monospace,
@@ -1599,13 +2229,18 @@ try {
 
     font-weight: 800;
 
-    letter-spacing: 0.15em;
+    letter-spacing:
+      0.15em;
   }
 
   .library-search-empty h3 {
-    margin: 9px 0 0;
+    margin:
+      9px
+      0
+      0;
 
-    color: var(--black);
+    color:
+      var(--black);
 
     font-size: 17px;
 
@@ -1613,21 +2248,33 @@ try {
   }
 
   .library-search-empty p {
-    margin: 6px auto 18px;
+    margin:
+      6px
+      auto
+      18px;
 
-    color: var(--muted);
+    color:
+      var(--muted);
 
     font-size: 10px;
+
+    line-height: 1.6;
   }
 
   .library-search-empty button {
-    height: 33px;
+    min-height: 35px;
 
-    padding: 0 12px;
+    padding:
+      0
+      12px;
 
-    border: 1px solid var(--black);
+    border:
+      1px
+      solid
+      var(--black);
 
-    background: var(--black);
+    background:
+      var(--black);
 
     color: white;
 
@@ -1636,12 +2283,17 @@ try {
     font-weight: 700;
 
     cursor: pointer;
+
+    touch-action:
+      manipulation;
   }
 
   .library-search-empty button:hover {
-    background: white;
+    background:
+      white;
 
-    color: var(--black);
+    color:
+      var(--black);
   }
 
   /* =========================================================
@@ -1649,24 +2301,31 @@ try {
   ========================================================== */
 
   .admin-footer {
-    margin-top: 66px;
+    margin-top: 58px;
   }
 
   .footer-line {
     width: 100%;
     height: 1px;
 
-    background: var(--line);
+    background:
+      var(--line);
   }
 
   .footer-content {
-    display: flex;
+    display: grid;
 
-    justify-content: space-between;
+    grid-template-columns:
+      1fr
+      auto
+      1fr;
 
-    padding-top: 11px;
+    gap: 8px;
 
-    color: var(--soft);
+    padding-top: 10px;
+
+    color:
+      var(--soft);
 
     font-family:
       ui-monospace,
@@ -1676,203 +2335,435 @@ try {
       Consolas,
       monospace;
 
-    font-size: 7px;
+    font-size: 6px;
 
     font-weight: 700;
 
-    letter-spacing: 0.12em;
+    letter-spacing:
+      0.12em;
   }
 
-  .footer-content span:first-child {
-    color: var(--black);
+  .footer-content
+    span:nth-child(2) {
+    text-align:
+      center;
+  }
+
+  .footer-content
+    span:last-child {
+    text-align:
+      right;
+  }
+
+  .footer-content
+    span:first-child {
+    color:
+      var(--black);
   }
 
   /* =========================================================
-     RESPONSIVE
+     FOCUS
   ========================================================== */
 
-  @media (max-width: 800px) {
+  .admin-page
+    a:focus-visible,
+  .admin-page
+    button:focus-visible {
+    outline:
+      2px
+      solid
+      var(--black);
+
+    outline-offset:
+      2px;
+  }
+
+  /* =========================================================
+     TABLET
+  ========================================================== */
+
+  @media (min-width: 481px) {
     .admin-page {
       padding:
-        35px
-        18px
-        60px;
+        40px
+        20px
+        calc(
+          64px +
+          env(safe-area-inset-bottom)
+        );
     }
 
     .admin-header {
-      align-items: flex-start;
-
-      flex-direction: column;
-
-      gap: 24px;
-    }
-
-    .admin-actions {
-      width: 100%;
-    }
-
-    .admin-actions > * {
-      flex: 1;
-    }
-
-    .admin-toolbar {
-      align-items: stretch;
-
-      flex-direction: column;
-
-      padding: 11px 0;
-    }
-
-    .toolbar-right {
-      justify-content: space-between;
-    }
-
-    .admin-search {
-      flex: 1;
-
-      width: auto;
-    }
-  }
-
-  @media (max-width: 650px) {
-    .admin-page {
-      padding-inline: 14px;
+      margin-bottom:
+        37px;
     }
 
     .admin-heading-row {
-      align-items: flex-start;
+      display: flex;
 
-      gap: 18px;
+      align-items:
+        flex-end;
+
+      justify-content:
+        space-between;
+
+      gap:
+        25px;
+    }
+
+    .admin-heading-row h1 {
+      font-size:
+        clamp(
+          3rem,
+          8vw,
+          4.3rem
+        );
     }
 
     .library-stat {
-      padding-top: 2px;
+      align-items:
+        flex-end;
+
+      flex: 0 0 auto;
+
+      margin-top: 0;
+
+      padding-bottom:
+        3px;
+    }
+
+    .admin-actions {
+      display: flex;
+
+      width: auto;
+    }
+
+    .primary-action,
+    .secondary-action {
+      min-width:
+        100px;
+
+      min-height:
+        37px;
+    }
+
+    .admin-toolbar {
+      flex-direction:
+        row;
+
+      align-items:
+        center;
+
+      justify-content:
+        space-between;
+
+      gap:
+        20px;
+
+      padding:
+        10px
+        0;
+    }
+
+    .toolbar-right {
+      justify-content:
+        flex-end;
+
+      flex: 0 1 auto;
+    }
+
+    .admin-search {
+      width:
+        260px;
+
+      flex:
+        0 1 260px;
     }
 
     .library-table-head {
       grid-template-columns:
-        42px
+        50px
         minmax(0, 1fr)
-        65px
-        88px;
+        82px
+        150px;
 
-      padding-inline: 9px;
+      padding-inline:
+        12px;
     }
 
     .admin-song {
       grid-template-columns:
-        42px
+        50px
         minmax(0, 1fr)
-        65px
-        88px;
+        82px
+        150px;
 
-      min-height: 72px;
+      min-height:
+        76px;
 
-      padding-inline: 9px;
+      padding-inline:
+        12px;
     }
 
-    .song-information h2 {
-      font-size: 12px;
-    }
-
-    .song-information p {
-      font-size: 9px;
-    }
-
-    .song-key {
-      gap: 4px;
-    }
-
-    .song-key > span:first-child {
-      display: none;
+    .song-key
+      > span:first-child {
+      display: inline;
     }
 
     .edit-button,
     .delete-button {
-      min-width: 0;
+      width:
+        auto;
 
-      width: 30px;
+      min-width:
+        60px;
 
-      padding: 0;
+      padding:
+        0
+        8px;
     }
 
     .edit-button span,
     .delete-button span {
-      display: none;
+      display: inline;
     }
 
     .admin-empty {
       grid-template-columns:
-        48px
+        60px
         minmax(0, 1fr);
 
-      gap: 15px;
+      gap:
+        20px;
 
-      padding: 43px 12px;
-    }
-
-    .empty-index {
-      font-size: 25px;
+      padding:
+        52px
+        15px;
     }
   }
 
-  @media (max-width: 480px) {
-    .admin-heading-row {
-      display: block;
+  /* =========================================================
+     DESKTOP
+  ========================================================== */
+
+  @media (min-width: 761px) {
+    .admin-page {
+      padding:
+        56px
+        28px
+        calc(
+          72px +
+          env(safe-area-inset-bottom)
+        );
     }
 
-    .library-stat {
-      align-items: flex-start;
+    .admin-header {
+      flex-direction:
+        row;
 
-      margin-top: 18px;
+      align-items:
+        flex-end;
+
+      justify-content:
+        space-between;
+
+      gap:
+        35px;
+
+      margin-bottom:
+        42px;
     }
 
-    .toolbar-left {
-      justify-content: space-between;
+    .admin-header-main {
+      min-width:
+        0;
     }
 
-    .toolbar-right {
-      gap: 8px;
+    .admin-heading-row h1 {
+      font-size:
+        clamp(
+          3rem,
+          6vw,
+          4.3rem
+        );
     }
 
-    .logout-button {
-      padding-inline: 4px;
+    .admin-heading-row p {
+      max-width:
+        420px;
+
+      font-size:
+        13px;
+    }
+
+    .library-stat strong {
+      font-size:
+        29px;
+    }
+
+    .admin-toolbar {
+      margin-bottom:
+        18px;
+    }
+
+    .admin-search {
+      width:
+        270px;
+
+      flex-basis:
+        270px;
+    }
+
+    .admin-search input {
+      font-size:
+        11px;
+    }
+
+    .admin-search kbd {
+      display:
+        inline-block;
+
+      margin-right:
+        7px;
+
+      padding:
+        3px
+        5px;
+
+      border:
+        1px
+        solid
+        #e6e6e6;
+
+      background:
+        #fafafa;
+
+      color:
+        #a3a3a3;
+
+      font-family:
+        ui-monospace,
+        SFMono-Regular,
+        Menlo,
+        Monaco,
+        Consolas,
+        monospace;
+
+      font-size:
+        8px;
+
+      line-height:
+        1;
     }
 
     .library-table-head {
       grid-template-columns:
-        36px
+        58px
         minmax(0, 1fr)
-        72px;
-    }
+        100px
+        190px;
 
-    .library-table-head span:nth-child(3) {
-      display: none;
+      height:
+        33px;
+
+      padding-inline:
+        15px;
+
+      font-size:
+        7px;
     }
 
     .admin-song {
       grid-template-columns:
-        36px
+        58px
         minmax(0, 1fr)
-        72px;
+        100px
+        190px;
+
+      min-height:
+        76px;
+
+      padding-inline:
+        15px;
+    }
+
+    .song-number {
+      font-size:
+        9px;
+    }
+
+    .song-information h2 {
+      font-size:
+        13px;
+    }
+
+    .song-information p {
+      font-size:
+        10px;
     }
 
     .song-key {
-      display: none;
+      gap:
+        7px;
     }
 
-    .song-actions {
-      gap: 3px;
+    .edit-button,
+    .delete-button {
+      min-width:
+        66px;
+
+      height:
+        30px;
+    }
+
+    .admin-empty {
+      grid-template-columns:
+        76px
+        minmax(0, 1fr);
+
+      gap:
+        25px;
+
+      padding:
+        55px
+        20px;
+    }
+
+    .empty-index {
+      font-size:
+        35px;
+    }
+
+    .admin-footer {
+      margin-top:
+        66px;
+    }
+
+    .footer-content {
+      font-size:
+        7px;
     }
   }
+
+  /* =========================================================
+     REDUCED MOTION
+  ========================================================== */
 
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
     *::after {
-      transition-duration: 0.01ms !important;
+      animation-duration:
+        0.01ms !important;
 
-      animation-duration: 0.01ms !important;
+      animation-iteration-count:
+        1 !important;
+
+      transition-duration:
+        0.01ms !important;
+
+      scroll-behavior:
+        auto !important;
     }
   }
 </style>
